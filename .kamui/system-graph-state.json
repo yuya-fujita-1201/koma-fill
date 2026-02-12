@@ -1,0 +1,2557 @@
+{
+  "schemaVersion": 1,
+  "projectPath": "/Users/yuyafujita/Projects/koma-fill",
+  "projectRootName": "koma-fill",
+  "graphRenderingMode": "normal",
+  "linkDisplayMode": "all",
+  "graphStats": {
+    "totalNodes": 76,
+    "folders": 25,
+    "files": 51,
+    "images": 0,
+    "videos": 0,
+    "audio": 0,
+    "code": 33,
+    "text": 4,
+    "html": 1,
+    "yaml": 0,
+    "json": 8,
+    "other": 5,
+    "totalLines": 0,
+    "maxLines": 0
+  },
+  "directoryTree": {
+    "name": "koma-fill",
+    "type": "directory",
+    "path": "koma-fill",
+    "children": [
+      {
+        "name": ".kamui",
+        "type": "directory",
+        "path": ".kamui",
+        "children": [],
+        "hasMore": true
+      },
+      {
+        "name": "backend",
+        "type": "directory",
+        "path": "backend",
+        "children": [
+          {
+            "name": "data",
+            "type": "directory",
+            "path": "backend/data",
+            "children": []
+          },
+          {
+            "name": "src",
+            "type": "directory",
+            "path": "backend/src",
+            "children": [
+              {
+                "name": "config",
+                "type": "directory",
+                "path": "backend/src/config",
+                "children": [
+                  {
+                    "name": "constants.ts",
+                    "type": "file",
+                    "path": "backend/src/config/constants.ts"
+                  }
+                ]
+              },
+              {
+                "name": "database",
+                "type": "directory",
+                "path": "backend/src/database",
+                "children": [
+                  {
+                    "name": "connection.ts",
+                    "type": "file",
+                    "path": "backend/src/database/connection.ts"
+                  },
+                  {
+                    "name": "schema.ts",
+                    "type": "file",
+                    "path": "backend/src/database/schema.ts"
+                  }
+                ]
+              },
+              {
+                "name": "middleware",
+                "type": "directory",
+                "path": "backend/src/middleware",
+                "children": [
+                  {
+                    "name": "errorHandler.ts",
+                    "type": "file",
+                    "path": "backend/src/middleware/errorHandler.ts"
+                  }
+                ]
+              },
+              {
+                "name": "models",
+                "type": "directory",
+                "path": "backend/src/models",
+                "children": [
+                  {
+                    "name": "types.ts",
+                    "type": "file",
+                    "path": "backend/src/models/types.ts"
+                  }
+                ]
+              },
+              {
+                "name": "repositories",
+                "type": "directory",
+                "path": "backend/src/repositories",
+                "children": [
+                  {
+                    "name": "keyImageRepository.ts",
+                    "type": "file",
+                    "path": "backend/src/repositories/keyImageRepository.ts"
+                  },
+                  {
+                    "name": "panelRepository.ts",
+                    "type": "file",
+                    "path": "backend/src/repositories/panelRepository.ts"
+                  },
+                  {
+                    "name": "projectRepository.ts",
+                    "type": "file",
+                    "path": "backend/src/repositories/projectRepository.ts"
+                  }
+                ]
+              },
+              {
+                "name": "routes",
+                "type": "directory",
+                "path": "backend/src/routes",
+                "children": [
+                  {
+                    "name": "manga.ts",
+                    "type": "file",
+                    "path": "backend/src/routes/manga.ts"
+                  }
+                ]
+              },
+              {
+                "name": "services",
+                "type": "directory",
+                "path": "backend/src/services",
+                "children": [
+                  {
+                    "name": "exportService.ts",
+                    "type": "file",
+                    "path": "backend/src/services/exportService.ts"
+                  },
+                  {
+                    "name": "imageAnalysisService.ts",
+                    "type": "file",
+                    "path": "backend/src/services/imageAnalysisService.ts"
+                  },
+                  {
+                    "name": "imageGenerationService.ts",
+                    "type": "file",
+                    "path": "backend/src/services/imageGenerationService.ts"
+                  },
+                  {
+                    "name": "layoutEngine.ts",
+                    "type": "file",
+                    "path": "backend/src/services/layoutEngine.ts"
+                  },
+                  {
+                    "name": "promptGenerationService.ts",
+                    "type": "file",
+                    "path": "backend/src/services/promptGenerationService.ts"
+                  }
+                ]
+              },
+              {
+                "name": "utils",
+                "type": "directory",
+                "path": "backend/src/utils",
+                "children": [
+                  {
+                    "name": "imageProcessor.ts",
+                    "type": "file",
+                    "path": "backend/src/utils/imageProcessor.ts"
+                  }
+                ]
+              },
+              {
+                "name": "app.ts",
+                "type": "file",
+                "path": "backend/src/app.ts"
+              },
+              {
+                "name": "index.ts",
+                "type": "file",
+                "path": "backend/src/index.ts"
+              }
+            ]
+          },
+          {
+            "name": "uploads",
+            "type": "directory",
+            "path": "backend/uploads",
+            "children": []
+          },
+          {
+            "name": "package-lock.json",
+            "type": "file",
+            "path": "backend/package-lock.json"
+          },
+          {
+            "name": "package.json",
+            "type": "file",
+            "path": "backend/package.json"
+          },
+          {
+            "name": "tsconfig.json",
+            "type": "file",
+            "path": "backend/tsconfig.json"
+          }
+        ]
+      },
+      {
+        "name": "docs",
+        "type": "directory",
+        "path": "docs",
+        "children": [
+          {
+            "name": "API_SPEC.md",
+            "type": "file",
+            "path": "docs/API_SPEC.md"
+          },
+          {
+            "name": "ARCHITECTURE.md",
+            "type": "file",
+            "path": "docs/ARCHITECTURE.md"
+          },
+          {
+            "name": "KAMUI_PROMPTS.md",
+            "type": "file",
+            "path": "docs/KAMUI_PROMPTS.md"
+          }
+        ]
+      },
+      {
+        "name": "frontend",
+        "type": "directory",
+        "path": "frontend",
+        "children": [
+          {
+            "name": "src",
+            "type": "directory",
+            "path": "frontend/src",
+            "children": [
+              {
+                "name": "components",
+                "type": "directory",
+                "path": "frontend/src/components",
+                "children": [
+                  {
+                    "name": "ExportOptions.tsx",
+                    "type": "file",
+                    "path": "frontend/src/components/ExportOptions.tsx"
+                  },
+                  {
+                    "name": "ImageUploader.tsx",
+                    "type": "file",
+                    "path": "frontend/src/components/ImageUploader.tsx"
+                  },
+                  {
+                    "name": "LayoutSelector.tsx",
+                    "type": "file",
+                    "path": "frontend/src/components/LayoutSelector.tsx"
+                  },
+                  {
+                    "name": "PanelGrid.tsx",
+                    "type": "file",
+                    "path": "frontend/src/components/PanelGrid.tsx"
+                  },
+                  {
+                    "name": "StoryPromptEditor.tsx",
+                    "type": "file",
+                    "path": "frontend/src/components/StoryPromptEditor.tsx"
+                  }
+                ]
+              },
+              {
+                "name": "hooks",
+                "type": "directory",
+                "path": "frontend/src/hooks",
+                "children": [
+                  {
+                    "name": "useMangaGeneration.ts",
+                    "type": "file",
+                    "path": "frontend/src/hooks/useMangaGeneration.ts"
+                  }
+                ]
+              },
+              {
+                "name": "pages",
+                "type": "directory",
+                "path": "frontend/src/pages",
+                "children": [
+                  {
+                    "name": "CreateMangaPage.tsx",
+                    "type": "file",
+                    "path": "frontend/src/pages/CreateMangaPage.tsx"
+                  },
+                  {
+                    "name": "PreviewPage.tsx",
+                    "type": "file",
+                    "path": "frontend/src/pages/PreviewPage.tsx"
+                  }
+                ]
+              },
+              {
+                "name": "services",
+                "type": "directory",
+                "path": "frontend/src/services",
+                "children": [
+                  {
+                    "name": "apiClient.ts",
+                    "type": "file",
+                    "path": "frontend/src/services/apiClient.ts"
+                  }
+                ]
+              },
+              {
+                "name": "types",
+                "type": "directory",
+                "path": "frontend/src/types",
+                "children": [
+                  {
+                    "name": "index.ts",
+                    "type": "file",
+                    "path": "frontend/src/types/index.ts"
+                  }
+                ]
+              },
+              {
+                "name": "App.tsx",
+                "type": "file",
+                "path": "frontend/src/App.tsx"
+              },
+              {
+                "name": "index.css",
+                "type": "file",
+                "path": "frontend/src/index.css"
+              },
+              {
+                "name": "main.tsx",
+                "type": "file",
+                "path": "frontend/src/main.tsx"
+              },
+              {
+                "name": "vite-env.d.ts",
+                "type": "file",
+                "path": "frontend/src/vite-env.d.ts"
+              }
+            ]
+          },
+          {
+            "name": "index.html",
+            "type": "file",
+            "path": "frontend/index.html"
+          },
+          {
+            "name": "package-lock.json",
+            "type": "file",
+            "path": "frontend/package-lock.json"
+          },
+          {
+            "name": "package.json",
+            "type": "file",
+            "path": "frontend/package.json"
+          },
+          {
+            "name": "postcss.config.js",
+            "type": "file",
+            "path": "frontend/postcss.config.js"
+          },
+          {
+            "name": "tailwind.config.js",
+            "type": "file",
+            "path": "frontend/tailwind.config.js"
+          },
+          {
+            "name": "tsconfig.json",
+            "type": "file",
+            "path": "frontend/tsconfig.json"
+          },
+          {
+            "name": "vite.config.ts",
+            "type": "file",
+            "path": "frontend/vite.config.ts"
+          }
+        ]
+      },
+      {
+        "name": "node_modules",
+        "type": "directory",
+        "path": "node_modules",
+        "children": [],
+        "hasMore": true
+      },
+      {
+        "name": "output",
+        "type": "directory",
+        "path": "output",
+        "children": []
+      },
+      {
+        "name": "uploads",
+        "type": "directory",
+        "path": "uploads",
+        "children": []
+      },
+      {
+        "name": ".DS_Store",
+        "type": "file",
+        "path": ".DS_Store"
+      },
+      {
+        "name": ".env",
+        "type": "file",
+        "path": ".env"
+      },
+      {
+        "name": ".env.example",
+        "type": "file",
+        "path": ".env.example"
+      },
+      {
+        "name": ".gitignore",
+        "type": "file",
+        "path": ".gitignore"
+      },
+      {
+        "name": "CONTEXT.md",
+        "type": "file",
+        "path": "CONTEXT.md"
+      },
+      {
+        "name": "package-lock.json",
+        "type": "file",
+        "path": "package-lock.json"
+      },
+      {
+        "name": "package.json",
+        "type": "file",
+        "path": "package.json"
+      }
+    ]
+  },
+  "graphData": {
+    "nodes": [
+      {
+        "id": "koma-fill",
+        "name": "koma-fill",
+        "path": "koma-fill",
+        "type": "directory",
+        "lines": 0,
+        "val": 14,
+        "color": "#4d515a",
+        "baseColor": "#4ec9b0",
+        "originalColor": "#4ec9b0",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": null,
+        "childFileCount": 7
+      },
+      {
+        "id": "koma-fill/.kamui",
+        "name": ".kamui",
+        "path": "koma-fill/.kamui",
+        "type": "directory",
+        "lines": 0,
+        "val": 14,
+        "color": "#4d515a",
+        "baseColor": "#4ec9b0",
+        "originalColor": "#4ec9b0",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/backend",
+        "name": "backend",
+        "path": "koma-fill/backend",
+        "type": "directory",
+        "lines": 0,
+        "val": 14,
+        "color": "#4d515a",
+        "baseColor": "#4ec9b0",
+        "originalColor": "#4ec9b0",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill",
+        "childFileCount": 3
+      },
+      {
+        "id": "koma-fill/backend/data",
+        "name": "data",
+        "path": "koma-fill/backend/data",
+        "type": "directory",
+        "lines": 0,
+        "val": 14,
+        "color": "#4d515a",
+        "baseColor": "#4ec9b0",
+        "originalColor": "#4ec9b0",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/backend/src",
+        "name": "src",
+        "path": "koma-fill/backend/src",
+        "type": "directory",
+        "lines": 0,
+        "val": 14,
+        "color": "#4d515a",
+        "baseColor": "#4ec9b0",
+        "originalColor": "#4ec9b0",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend",
+        "childFileCount": 2
+      },
+      {
+        "id": "koma-fill/backend/src/config",
+        "name": "config",
+        "path": "koma-fill/backend/src/config",
+        "type": "directory",
+        "lines": 0,
+        "val": 14,
+        "color": "#4d515a",
+        "baseColor": "#4ec9b0",
+        "originalColor": "#4ec9b0",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend/src",
+        "childFileCount": 1
+      },
+      {
+        "id": "koma-fill/backend/src/config/constants.ts",
+        "name": "constants.ts",
+        "path": "koma-fill/backend/src/config/constants.ts",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#3178c6",
+        "baseColor": "#3178c6",
+        "originalColor": "#3178c6",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend/src/config",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/backend/src/database",
+        "name": "database",
+        "path": "koma-fill/backend/src/database",
+        "type": "directory",
+        "lines": 0,
+        "val": 14,
+        "color": "#4d515a",
+        "baseColor": "#4ec9b0",
+        "originalColor": "#4ec9b0",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend/src",
+        "childFileCount": 2
+      },
+      {
+        "id": "koma-fill/backend/src/database/connection.ts",
+        "name": "connection.ts",
+        "path": "koma-fill/backend/src/database/connection.ts",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#3178c6",
+        "baseColor": "#3178c6",
+        "originalColor": "#3178c6",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend/src/database",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/backend/src/database/schema.ts",
+        "name": "schema.ts",
+        "path": "koma-fill/backend/src/database/schema.ts",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#3178c6",
+        "baseColor": "#3178c6",
+        "originalColor": "#3178c6",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend/src/database",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/backend/src/middleware",
+        "name": "middleware",
+        "path": "koma-fill/backend/src/middleware",
+        "type": "directory",
+        "lines": 0,
+        "val": 14,
+        "color": "#4d515a",
+        "baseColor": "#4ec9b0",
+        "originalColor": "#4ec9b0",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend/src",
+        "childFileCount": 1
+      },
+      {
+        "id": "koma-fill/backend/src/middleware/errorHandler.ts",
+        "name": "errorHandler.ts",
+        "path": "koma-fill/backend/src/middleware/errorHandler.ts",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#3178c6",
+        "baseColor": "#3178c6",
+        "originalColor": "#3178c6",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend/src/middleware",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/backend/src/models",
+        "name": "models",
+        "path": "koma-fill/backend/src/models",
+        "type": "directory",
+        "lines": 0,
+        "val": 14,
+        "color": "#4d515a",
+        "baseColor": "#4ec9b0",
+        "originalColor": "#4ec9b0",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend/src",
+        "childFileCount": 1
+      },
+      {
+        "id": "koma-fill/backend/src/models/types.ts",
+        "name": "types.ts",
+        "path": "koma-fill/backend/src/models/types.ts",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#3178c6",
+        "baseColor": "#3178c6",
+        "originalColor": "#3178c6",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend/src/models",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/backend/src/repositories",
+        "name": "repositories",
+        "path": "koma-fill/backend/src/repositories",
+        "type": "directory",
+        "lines": 0,
+        "val": 14,
+        "color": "#4d515a",
+        "baseColor": "#4ec9b0",
+        "originalColor": "#4ec9b0",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend/src",
+        "childFileCount": 3
+      },
+      {
+        "id": "koma-fill/backend/src/repositories/keyImageRepository.ts",
+        "name": "keyImageRepository.ts",
+        "path": "koma-fill/backend/src/repositories/keyImageRepository.ts",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#3178c6",
+        "baseColor": "#3178c6",
+        "originalColor": "#3178c6",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend/src/repositories",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/backend/src/repositories/panelRepository.ts",
+        "name": "panelRepository.ts",
+        "path": "koma-fill/backend/src/repositories/panelRepository.ts",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#3178c6",
+        "baseColor": "#3178c6",
+        "originalColor": "#3178c6",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend/src/repositories",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/backend/src/repositories/projectRepository.ts",
+        "name": "projectRepository.ts",
+        "path": "koma-fill/backend/src/repositories/projectRepository.ts",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#3178c6",
+        "baseColor": "#3178c6",
+        "originalColor": "#3178c6",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend/src/repositories",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/backend/src/routes",
+        "name": "routes",
+        "path": "koma-fill/backend/src/routes",
+        "type": "directory",
+        "lines": 0,
+        "val": 14,
+        "color": "#4d515a",
+        "baseColor": "#4ec9b0",
+        "originalColor": "#4ec9b0",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend/src",
+        "childFileCount": 1
+      },
+      {
+        "id": "koma-fill/backend/src/routes/manga.ts",
+        "name": "manga.ts",
+        "path": "koma-fill/backend/src/routes/manga.ts",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#3178c6",
+        "baseColor": "#3178c6",
+        "originalColor": "#3178c6",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend/src/routes",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/backend/src/services",
+        "name": "services",
+        "path": "koma-fill/backend/src/services",
+        "type": "directory",
+        "lines": 0,
+        "val": 14,
+        "color": "#4d515a",
+        "baseColor": "#4ec9b0",
+        "originalColor": "#4ec9b0",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend/src",
+        "childFileCount": 5
+      },
+      {
+        "id": "koma-fill/backend/src/services/exportService.ts",
+        "name": "exportService.ts",
+        "path": "koma-fill/backend/src/services/exportService.ts",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#3178c6",
+        "baseColor": "#3178c6",
+        "originalColor": "#3178c6",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend/src/services",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/backend/src/services/imageAnalysisService.ts",
+        "name": "imageAnalysisService.ts",
+        "path": "koma-fill/backend/src/services/imageAnalysisService.ts",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#3178c6",
+        "baseColor": "#3178c6",
+        "originalColor": "#3178c6",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend/src/services",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/backend/src/services/imageGenerationService.ts",
+        "name": "imageGenerationService.ts",
+        "path": "koma-fill/backend/src/services/imageGenerationService.ts",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#3178c6",
+        "baseColor": "#3178c6",
+        "originalColor": "#3178c6",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend/src/services",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/backend/src/services/layoutEngine.ts",
+        "name": "layoutEngine.ts",
+        "path": "koma-fill/backend/src/services/layoutEngine.ts",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#3178c6",
+        "baseColor": "#3178c6",
+        "originalColor": "#3178c6",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend/src/services",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/backend/src/services/promptGenerationService.ts",
+        "name": "promptGenerationService.ts",
+        "path": "koma-fill/backend/src/services/promptGenerationService.ts",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#3178c6",
+        "baseColor": "#3178c6",
+        "originalColor": "#3178c6",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend/src/services",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/backend/src/utils",
+        "name": "utils",
+        "path": "koma-fill/backend/src/utils",
+        "type": "directory",
+        "lines": 0,
+        "val": 14,
+        "color": "#4d515a",
+        "baseColor": "#4ec9b0",
+        "originalColor": "#4ec9b0",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend/src",
+        "childFileCount": 1
+      },
+      {
+        "id": "koma-fill/backend/src/utils/imageProcessor.ts",
+        "name": "imageProcessor.ts",
+        "path": "koma-fill/backend/src/utils/imageProcessor.ts",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#3178c6",
+        "baseColor": "#3178c6",
+        "originalColor": "#3178c6",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend/src/utils",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/backend/src/app.ts",
+        "name": "app.ts",
+        "path": "koma-fill/backend/src/app.ts",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#3178c6",
+        "baseColor": "#3178c6",
+        "originalColor": "#3178c6",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend/src",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/backend/src/index.ts",
+        "name": "index.ts",
+        "path": "koma-fill/backend/src/index.ts",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#3178c6",
+        "baseColor": "#3178c6",
+        "originalColor": "#3178c6",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend/src",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/backend/uploads",
+        "name": "uploads",
+        "path": "koma-fill/backend/uploads",
+        "type": "directory",
+        "lines": 0,
+        "val": 14,
+        "color": "#4d515a",
+        "baseColor": "#4ec9b0",
+        "originalColor": "#4ec9b0",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/backend/package-lock.json",
+        "name": "package-lock.json",
+        "path": "koma-fill/backend/package-lock.json",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#8e44ad",
+        "baseColor": "#8e44ad",
+        "originalColor": "#8e44ad",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/backend/package.json",
+        "name": "package.json",
+        "path": "koma-fill/backend/package.json",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#8e44ad",
+        "baseColor": "#8e44ad",
+        "originalColor": "#8e44ad",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/backend/tsconfig.json",
+        "name": "tsconfig.json",
+        "path": "koma-fill/backend/tsconfig.json",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#8e44ad",
+        "baseColor": "#8e44ad",
+        "originalColor": "#8e44ad",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/backend",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/docs",
+        "name": "docs",
+        "path": "koma-fill/docs",
+        "type": "directory",
+        "lines": 0,
+        "val": 14,
+        "color": "#4d515a",
+        "baseColor": "#4ec9b0",
+        "originalColor": "#4ec9b0",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill",
+        "childFileCount": 3
+      },
+      {
+        "id": "koma-fill/docs/API_SPEC.md",
+        "name": "API_SPEC.md",
+        "path": "koma-fill/docs/API_SPEC.md",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#3498db",
+        "baseColor": "#3498db",
+        "originalColor": "#3498db",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/docs",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/docs/ARCHITECTURE.md",
+        "name": "ARCHITECTURE.md",
+        "path": "koma-fill/docs/ARCHITECTURE.md",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#3498db",
+        "baseColor": "#3498db",
+        "originalColor": "#3498db",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/docs",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/docs/KAMUI_PROMPTS.md",
+        "name": "KAMUI_PROMPTS.md",
+        "path": "koma-fill/docs/KAMUI_PROMPTS.md",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#3498db",
+        "baseColor": "#3498db",
+        "originalColor": "#3498db",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/docs",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/frontend",
+        "name": "frontend",
+        "path": "koma-fill/frontend",
+        "type": "directory",
+        "lines": 0,
+        "val": 14,
+        "color": "#4d515a",
+        "baseColor": "#4ec9b0",
+        "originalColor": "#4ec9b0",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill",
+        "childFileCount": 7
+      },
+      {
+        "id": "koma-fill/frontend/src",
+        "name": "src",
+        "path": "koma-fill/frontend/src",
+        "type": "directory",
+        "lines": 0,
+        "val": 14,
+        "color": "#4d515a",
+        "baseColor": "#4ec9b0",
+        "originalColor": "#4ec9b0",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/frontend",
+        "childFileCount": 4
+      },
+      {
+        "id": "koma-fill/frontend/src/components",
+        "name": "components",
+        "path": "koma-fill/frontend/src/components",
+        "type": "directory",
+        "lines": 0,
+        "val": 14,
+        "color": "#4d515a",
+        "baseColor": "#4ec9b0",
+        "originalColor": "#4ec9b0",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/frontend/src",
+        "childFileCount": 5
+      },
+      {
+        "id": "koma-fill/frontend/src/components/ExportOptions.tsx",
+        "name": "ExportOptions.tsx",
+        "path": "koma-fill/frontend/src/components/ExportOptions.tsx",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#61dafb",
+        "baseColor": "#61dafb",
+        "originalColor": "#61dafb",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/frontend/src/components",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/frontend/src/components/ImageUploader.tsx",
+        "name": "ImageUploader.tsx",
+        "path": "koma-fill/frontend/src/components/ImageUploader.tsx",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#61dafb",
+        "baseColor": "#61dafb",
+        "originalColor": "#61dafb",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/frontend/src/components",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/frontend/src/components/LayoutSelector.tsx",
+        "name": "LayoutSelector.tsx",
+        "path": "koma-fill/frontend/src/components/LayoutSelector.tsx",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#61dafb",
+        "baseColor": "#61dafb",
+        "originalColor": "#61dafb",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/frontend/src/components",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/frontend/src/components/PanelGrid.tsx",
+        "name": "PanelGrid.tsx",
+        "path": "koma-fill/frontend/src/components/PanelGrid.tsx",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#61dafb",
+        "baseColor": "#61dafb",
+        "originalColor": "#61dafb",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/frontend/src/components",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/frontend/src/components/StoryPromptEditor.tsx",
+        "name": "StoryPromptEditor.tsx",
+        "path": "koma-fill/frontend/src/components/StoryPromptEditor.tsx",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#61dafb",
+        "baseColor": "#61dafb",
+        "originalColor": "#61dafb",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/frontend/src/components",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/frontend/src/hooks",
+        "name": "hooks",
+        "path": "koma-fill/frontend/src/hooks",
+        "type": "directory",
+        "lines": 0,
+        "val": 14,
+        "color": "#4d515a",
+        "baseColor": "#4ec9b0",
+        "originalColor": "#4ec9b0",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/frontend/src",
+        "childFileCount": 1
+      },
+      {
+        "id": "koma-fill/frontend/src/hooks/useMangaGeneration.ts",
+        "name": "useMangaGeneration.ts",
+        "path": "koma-fill/frontend/src/hooks/useMangaGeneration.ts",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#3178c6",
+        "baseColor": "#3178c6",
+        "originalColor": "#3178c6",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/frontend/src/hooks",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/frontend/src/pages",
+        "name": "pages",
+        "path": "koma-fill/frontend/src/pages",
+        "type": "directory",
+        "lines": 0,
+        "val": 14,
+        "color": "#4d515a",
+        "baseColor": "#4ec9b0",
+        "originalColor": "#4ec9b0",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/frontend/src",
+        "childFileCount": 2
+      },
+      {
+        "id": "koma-fill/frontend/src/pages/CreateMangaPage.tsx",
+        "name": "CreateMangaPage.tsx",
+        "path": "koma-fill/frontend/src/pages/CreateMangaPage.tsx",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#61dafb",
+        "baseColor": "#61dafb",
+        "originalColor": "#61dafb",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/frontend/src/pages",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/frontend/src/pages/PreviewPage.tsx",
+        "name": "PreviewPage.tsx",
+        "path": "koma-fill/frontend/src/pages/PreviewPage.tsx",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#61dafb",
+        "baseColor": "#61dafb",
+        "originalColor": "#61dafb",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/frontend/src/pages",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/frontend/src/services",
+        "name": "services",
+        "path": "koma-fill/frontend/src/services",
+        "type": "directory",
+        "lines": 0,
+        "val": 14,
+        "color": "#4d515a",
+        "baseColor": "#4ec9b0",
+        "originalColor": "#4ec9b0",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/frontend/src",
+        "childFileCount": 1
+      },
+      {
+        "id": "koma-fill/frontend/src/services/apiClient.ts",
+        "name": "apiClient.ts",
+        "path": "koma-fill/frontend/src/services/apiClient.ts",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#3178c6",
+        "baseColor": "#3178c6",
+        "originalColor": "#3178c6",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/frontend/src/services",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/frontend/src/types",
+        "name": "types",
+        "path": "koma-fill/frontend/src/types",
+        "type": "directory",
+        "lines": 0,
+        "val": 14,
+        "color": "#4d515a",
+        "baseColor": "#4ec9b0",
+        "originalColor": "#4ec9b0",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/frontend/src",
+        "childFileCount": 1
+      },
+      {
+        "id": "koma-fill/frontend/src/types/index.ts",
+        "name": "index.ts",
+        "path": "koma-fill/frontend/src/types/index.ts",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#3178c6",
+        "baseColor": "#3178c6",
+        "originalColor": "#3178c6",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/frontend/src/types",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/frontend/src/App.tsx",
+        "name": "App.tsx",
+        "path": "koma-fill/frontend/src/App.tsx",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#61dafb",
+        "baseColor": "#61dafb",
+        "originalColor": "#61dafb",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/frontend/src",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/frontend/src/index.css",
+        "name": "index.css",
+        "path": "koma-fill/frontend/src/index.css",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#1572b6",
+        "baseColor": "#1572b6",
+        "originalColor": "#1572b6",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/frontend/src",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/frontend/src/main.tsx",
+        "name": "main.tsx",
+        "path": "koma-fill/frontend/src/main.tsx",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#61dafb",
+        "baseColor": "#61dafb",
+        "originalColor": "#61dafb",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/frontend/src",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/frontend/src/vite-env.d.ts",
+        "name": "vite-env.d.ts",
+        "path": "koma-fill/frontend/src/vite-env.d.ts",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#3178c6",
+        "baseColor": "#3178c6",
+        "originalColor": "#3178c6",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/frontend/src",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/frontend/index.html",
+        "name": "index.html",
+        "path": "koma-fill/frontend/index.html",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#e44d26",
+        "baseColor": "#e44d26",
+        "originalColor": "#e44d26",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/frontend",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/frontend/package-lock.json",
+        "name": "package-lock.json",
+        "path": "koma-fill/frontend/package-lock.json",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#8e44ad",
+        "baseColor": "#8e44ad",
+        "originalColor": "#8e44ad",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/frontend",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/frontend/package.json",
+        "name": "package.json",
+        "path": "koma-fill/frontend/package.json",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#8e44ad",
+        "baseColor": "#8e44ad",
+        "originalColor": "#8e44ad",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/frontend",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/frontend/postcss.config.js",
+        "name": "postcss.config.js",
+        "path": "koma-fill/frontend/postcss.config.js",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#f7df1e",
+        "baseColor": "#f7df1e",
+        "originalColor": "#f7df1e",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/frontend",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/frontend/tailwind.config.js",
+        "name": "tailwind.config.js",
+        "path": "koma-fill/frontend/tailwind.config.js",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#f7df1e",
+        "baseColor": "#f7df1e",
+        "originalColor": "#f7df1e",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/frontend",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/frontend/tsconfig.json",
+        "name": "tsconfig.json",
+        "path": "koma-fill/frontend/tsconfig.json",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#8e44ad",
+        "baseColor": "#8e44ad",
+        "originalColor": "#8e44ad",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill/frontend",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/frontend/vite.config.ts",
+        "name": "vite.config.ts",
+        "path": "koma-fill/frontend/vite.config.ts",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#3178c6",
+        "baseColor": "#3178c6",
+        "originalColor": "#3178c6",
+        "defaultGlow": 0.1,
+        "glowIntensity": 0.1,
+        "highlighted": false,
+        "parentPath": "koma-fill/frontend",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/node_modules",
+        "name": "node_modules",
+        "path": "koma-fill/node_modules",
+        "type": "directory",
+        "lines": 0,
+        "val": 14,
+        "color": "#4d515a",
+        "baseColor": "#4ec9b0",
+        "originalColor": "#4ec9b0",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/output",
+        "name": "output",
+        "path": "koma-fill/output",
+        "type": "directory",
+        "lines": 0,
+        "val": 14,
+        "color": "#4d515a",
+        "baseColor": "#4ec9b0",
+        "originalColor": "#4ec9b0",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/uploads",
+        "name": "uploads",
+        "path": "koma-fill/uploads",
+        "type": "directory",
+        "lines": 0,
+        "val": 14,
+        "color": "#4d515a",
+        "baseColor": "#4ec9b0",
+        "originalColor": "#4ec9b0",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/.DS_Store",
+        "name": ".DS_Store",
+        "path": "koma-fill/.DS_Store",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#57606f",
+        "baseColor": "#57606f",
+        "originalColor": "#57606f",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/.env",
+        "name": ".env",
+        "path": "koma-fill/.env",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#57606f",
+        "baseColor": "#57606f",
+        "originalColor": "#57606f",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/.env.example",
+        "name": ".env.example",
+        "path": "koma-fill/.env.example",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#57606f",
+        "baseColor": "#57606f",
+        "originalColor": "#57606f",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/.gitignore",
+        "name": ".gitignore",
+        "path": "koma-fill/.gitignore",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#57606f",
+        "baseColor": "#57606f",
+        "originalColor": "#57606f",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/CONTEXT.md",
+        "name": "CONTEXT.md",
+        "path": "koma-fill/CONTEXT.md",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#3498db",
+        "baseColor": "#3498db",
+        "originalColor": "#3498db",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/package-lock.json",
+        "name": "package-lock.json",
+        "path": "koma-fill/package-lock.json",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#8e44ad",
+        "baseColor": "#8e44ad",
+        "originalColor": "#8e44ad",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill",
+        "childFileCount": 0
+      },
+      {
+        "id": "koma-fill/package.json",
+        "name": "package.json",
+        "path": "koma-fill/package.json",
+        "type": "file",
+        "lines": 0,
+        "val": 6,
+        "color": "#8e44ad",
+        "baseColor": "#8e44ad",
+        "originalColor": "#8e44ad",
+        "defaultGlow": 0.18,
+        "glowIntensity": 0.18,
+        "highlighted": false,
+        "parentPath": "koma-fill",
+        "childFileCount": 0
+      }
+    ],
+    "links": [
+      {
+        "source": "koma-fill",
+        "target": "koma-fill/.kamui",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill",
+        "target": "koma-fill/backend",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend",
+        "target": "koma-fill/backend/data",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend",
+        "target": "koma-fill/backend/src",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend/src",
+        "target": "koma-fill/backend/src/config",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend/src/config",
+        "target": "koma-fill/backend/src/config/constants.ts",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend/src",
+        "target": "koma-fill/backend/src/database",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend/src/database",
+        "target": "koma-fill/backend/src/database/connection.ts",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend/src/database",
+        "target": "koma-fill/backend/src/database/schema.ts",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend/src",
+        "target": "koma-fill/backend/src/middleware",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend/src/middleware",
+        "target": "koma-fill/backend/src/middleware/errorHandler.ts",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend/src",
+        "target": "koma-fill/backend/src/models",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend/src/models",
+        "target": "koma-fill/backend/src/models/types.ts",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend/src",
+        "target": "koma-fill/backend/src/repositories",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend/src/repositories",
+        "target": "koma-fill/backend/src/repositories/keyImageRepository.ts",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend/src/repositories",
+        "target": "koma-fill/backend/src/repositories/panelRepository.ts",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend/src/repositories",
+        "target": "koma-fill/backend/src/repositories/projectRepository.ts",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend/src",
+        "target": "koma-fill/backend/src/routes",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend/src/routes",
+        "target": "koma-fill/backend/src/routes/manga.ts",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend/src",
+        "target": "koma-fill/backend/src/services",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend/src/services",
+        "target": "koma-fill/backend/src/services/exportService.ts",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend/src/services",
+        "target": "koma-fill/backend/src/services/imageAnalysisService.ts",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend/src/services",
+        "target": "koma-fill/backend/src/services/imageGenerationService.ts",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend/src/services",
+        "target": "koma-fill/backend/src/services/layoutEngine.ts",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend/src/services",
+        "target": "koma-fill/backend/src/services/promptGenerationService.ts",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend/src",
+        "target": "koma-fill/backend/src/utils",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend/src/utils",
+        "target": "koma-fill/backend/src/utils/imageProcessor.ts",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend/src",
+        "target": "koma-fill/backend/src/app.ts",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend/src",
+        "target": "koma-fill/backend/src/index.ts",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend",
+        "target": "koma-fill/backend/uploads",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend",
+        "target": "koma-fill/backend/package-lock.json",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend",
+        "target": "koma-fill/backend/package.json",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/backend",
+        "target": "koma-fill/backend/tsconfig.json",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill",
+        "target": "koma-fill/docs",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/docs",
+        "target": "koma-fill/docs/API_SPEC.md",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/docs",
+        "target": "koma-fill/docs/ARCHITECTURE.md",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/docs",
+        "target": "koma-fill/docs/KAMUI_PROMPTS.md",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill",
+        "target": "koma-fill/frontend",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/frontend",
+        "target": "koma-fill/frontend/src",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/frontend/src",
+        "target": "koma-fill/frontend/src/components",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/frontend/src/components",
+        "target": "koma-fill/frontend/src/components/ExportOptions.tsx",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/frontend/src/components",
+        "target": "koma-fill/frontend/src/components/ImageUploader.tsx",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/frontend/src/components",
+        "target": "koma-fill/frontend/src/components/LayoutSelector.tsx",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/frontend/src/components",
+        "target": "koma-fill/frontend/src/components/PanelGrid.tsx",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/frontend/src/components",
+        "target": "koma-fill/frontend/src/components/StoryPromptEditor.tsx",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/frontend/src",
+        "target": "koma-fill/frontend/src/hooks",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/frontend/src/hooks",
+        "target": "koma-fill/frontend/src/hooks/useMangaGeneration.ts",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/frontend/src",
+        "target": "koma-fill/frontend/src/pages",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/frontend/src/pages",
+        "target": "koma-fill/frontend/src/pages/CreateMangaPage.tsx",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/frontend/src/pages",
+        "target": "koma-fill/frontend/src/pages/PreviewPage.tsx",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/frontend/src",
+        "target": "koma-fill/frontend/src/services",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/frontend/src/services",
+        "target": "koma-fill/frontend/src/services/apiClient.ts",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/frontend/src",
+        "target": "koma-fill/frontend/src/types",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/frontend/src/types",
+        "target": "koma-fill/frontend/src/types/index.ts",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/frontend/src",
+        "target": "koma-fill/frontend/src/App.tsx",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/frontend/src",
+        "target": "koma-fill/frontend/src/index.css",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/frontend/src",
+        "target": "koma-fill/frontend/src/main.tsx",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/frontend/src",
+        "target": "koma-fill/frontend/src/vite-env.d.ts",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/frontend",
+        "target": "koma-fill/frontend/index.html",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/frontend",
+        "target": "koma-fill/frontend/package-lock.json",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/frontend",
+        "target": "koma-fill/frontend/package.json",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/frontend",
+        "target": "koma-fill/frontend/postcss.config.js",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/frontend",
+        "target": "koma-fill/frontend/tailwind.config.js",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/frontend",
+        "target": "koma-fill/frontend/tsconfig.json",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill/frontend",
+        "target": "koma-fill/frontend/vite.config.ts",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill",
+        "target": "koma-fill/node_modules",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill",
+        "target": "koma-fill/output",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill",
+        "target": "koma-fill/uploads",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill",
+        "target": "koma-fill/.DS_Store",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill",
+        "target": "koma-fill/.env",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill",
+        "target": "koma-fill/.env.example",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill",
+        "target": "koma-fill/.gitignore",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill",
+        "target": "koma-fill/CONTEXT.md",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill",
+        "target": "koma-fill/package-lock.json",
+        "type": "tree"
+      },
+      {
+        "source": "koma-fill",
+        "target": "koma-fill/package.json",
+        "type": "tree"
+      }
+    ]
+  },
+  "trackedFiles": [
+    ".env.example",
+    ".gitignore",
+    ".kamui/manager/202602122348_monitor_comp-1770907489752-910mgnrj.html",
+    ".kamui/manager/202602122352_eval_task-1770907489752-910mgnrj.html",
+    ".kamui/manager/202602130004_eval_task-1770907489752-910mgnrj.html",
+    ".kamui/manager/medals-comp-1770907489752-910mgnrj-1770907496134.json",
+    ".kamui/manager/medals-comp-1770907489752-910mgnrj-1770908704.json",
+    "CONTEXT.md",
+    "backend/package-lock.json",
+    "backend/package.json",
+    "backend/src/app.ts",
+    "backend/src/config/constants.ts",
+    "backend/src/database/connection.ts",
+    "backend/src/database/schema.ts",
+    "backend/src/index.ts",
+    "backend/src/middleware/errorHandler.ts",
+    "backend/src/models/types.ts",
+    "backend/src/repositories/keyImageRepository.ts",
+    "backend/src/repositories/panelRepository.ts",
+    "backend/src/repositories/projectRepository.ts",
+    "backend/src/routes/manga.ts",
+    "backend/src/services/exportService.ts",
+    "backend/src/services/imageAnalysisService.ts",
+    "backend/src/services/imageGenerationService.ts",
+    "backend/src/services/layoutEngine.ts",
+    "backend/src/services/promptGenerationService.ts",
+    "backend/src/utils/imageProcessor.ts",
+    "backend/tsconfig.json",
+    "docs/API_SPEC.md",
+    "docs/ARCHITECTURE.md",
+    "docs/KAMUI_PROMPTS.md",
+    "frontend/index.html",
+    "frontend/package-lock.json",
+    "frontend/package.json",
+    "frontend/postcss.config.js",
+    "frontend/src/App.tsx",
+    "frontend/src/components/ExportOptions.tsx",
+    "frontend/src/components/ImageUploader.tsx",
+    "frontend/src/components/LayoutSelector.tsx",
+    "frontend/src/components/PanelGrid.tsx",
+    "frontend/src/components/StoryPromptEditor.tsx",
+    "frontend/src/hooks/useMangaGeneration.ts",
+    "frontend/src/index.css",
+    "frontend/src/main.tsx",
+    "frontend/src/pages/CreateMangaPage.tsx",
+    "frontend/src/pages/PreviewPage.tsx",
+    "frontend/src/services/apiClient.ts",
+    "frontend/src/types/index.ts",
+    "frontend/src/vite-env.d.ts",
+    "frontend/tailwind.config.js",
+    "frontend/tsconfig.json",
+    "frontend/vite.config.ts",
+    "package-lock.json",
+    "package.json"
+  ],
+  "uiState": {
+    "expandedDirs": [
+      "koma-fill",
+      "koma-fill/koma-fill",
+      "koma-fill/.kamui",
+      "koma-fill/koma-fill/.kamui",
+      "koma-fill/.kamui/apps",
+      "koma-fill/koma-fill/.kamui/apps",
+      "koma-fill/.kamui/gantte",
+      "koma-fill/koma-fill/.kamui/gantte",
+      "koma-fill/.kamui/movie",
+      "koma-fill/koma-fill/.kamui/movie",
+      "koma-fill/.kamui/movie/media",
+      "koma-fill/koma-fill/.kamui/movie/media",
+      "koma-fill/.kamui/movie/media/cyberpunk-night",
+      "koma-fill/koma-fill/.kamui/movie/media/cyberpunk-night",
+      "koma-fill/.kamui/movie/media/tokyo-rain",
+      "koma-fill/koma-fill/.kamui/movie/media/tokyo-rain",
+      "koma-fill/.kamui/prompt",
+      "koma-fill/koma-fill/.kamui/prompt"
+    ],
+    "selectedPath": null
+  },
+  "directoryTreeMeta": {
+    "mode": "full",
+    "maxDepthApplied": 10,
+    "maxEntriesPerDirectory": 0,
+    "isPartial": false
+  },
+  "gitHistoryMeta": {
+    "mode": "full",
+    "isPartial": false,
+    "branchPulse": {
+      "generatedAt": 1770909014404,
+      "targets": [
+        "main",
+        "master"
+      ],
+      "statsByBranch": {
+        "main": {
+          "branch": "main",
+          "head": "1515fedca072442ad0656037229bce50b2e341f3",
+          "baseRef": "origin/main",
+          "baseHead": "8c4744d51c510fcc1be333b0221792cf33ee728c",
+          "mergeBase": "8c4744d51c510fcc1be333b0221792cf33ee728c",
+          "divergence": {
+            "aheadCount": 1,
+            "fileCount": 26
+          },
+          "baseline": {
+            "aheadCount": 1,
+            "behindCount": 0,
+            "fileCount": 26
+          },
+          "upstream": null
+        }
+      }
+    }
+  },
+  "gitHistoryState": {
+    "selectedTimelineIndex": 1,
+    "activeCommitHash": null,
+    "entries": [
+      {
+        "type": "live",
+        "label": "現在のコードベース",
+        "files": [],
+        "branch": "main",
+        "targetCommitHash": "1515fedca072442ad0656037229bce50b2e341f3",
+        "worktreePath": "/Users/yuyafujita/Projects/koma-fill",
+        "timestamp": 1770909014417,
+        "lane": 0,
+        "branchLabel": "main",
+        "branchTags": [
+          "main"
+        ],
+        "isDefaultWorktree": true,
+        "branchColor": "#4f85e8",
+        "index": 0
+      },
+      {
+        "type": "unstaged",
+        "label": "未ステージ (22)",
+        "files": [
+          ".kamui/apps/kamui-os-intro-20251125.css",
+          ".kamui/apps/kamui-os-intro-20251125.html",
+          ".kamui/apps/kamui-os-intro-20251125.js",
+          ".kamui/gantte/test.yaml",
+          ".kamui/movie/media/cyberpunk-city-flight.mp4",
+          ".kamui/movie/media/cyberpunk-cityscape.png",
+          ".kamui/movie/media/cyberpunk-night/cyberpunk-cityscape.png",
+          ".kamui/movie/media/cyberpunk-night/japanese-alley-scene.png",
+          ".kamui/movie/media/cyberpunk-night/neon-dreams.mp3",
+          ".kamui/movie/media/cyberpunk-night/rainy-night-lofi.mp3",
+          ".kamui/movie/media/cyberpunk-night/workspace-plus.json",
+          ".kamui/movie/media/cyberpunk-night/workspace.json",
+          ".kamui/movie/media/japanese-alley-night.mp4",
+          ".kamui/movie/media/japanese-alley-scene.png",
+          ".kamui/movie/media/neon-dreams.mp3",
+          ".kamui/movie/media/rainy-night-lofi.mp3",
+          ".kamui/movie/media/tokyo-rain/cyberpunk-cityscape.png",
+          ".kamui/movie/media/tokyo-rain/japanese-alley-scene.png",
+          ".kamui/movie/media/tokyo-rain/neon-dreams.mp3",
+          ".kamui/movie/media/tokyo-rain/rainy-night-lofi.mp3",
+          ".kamui/movie/media/tokyo-rain/workspace.json",
+          ".kamui/prompt/merge-prompt.txt"
+        ],
+        "branch": "main",
+        "targetCommitHash": "1515fedca072442ad0656037229bce50b2e341f3",
+        "worktreePath": "/Users/yuyafujita/Projects/koma-fill",
+        "timestamp": 1770909014417,
+        "sortOrder": 0,
+        "lane": 0,
+        "branchColor": "#4f85e8",
+        "index": 1
+      },
+      {
+        "type": "staged",
+        "label": "ステージ済み (1)",
+        "files": [
+          "ackage-lock.json"
+        ],
+        "branch": "main",
+        "targetCommitHash": "1515fedca072442ad0656037229bce50b2e341f3",
+        "worktreePath": "/Users/yuyafujita/Projects/koma-fill",
+        "timestamp": 1770909014417,
+        "sortOrder": 1,
+        "lane": 0,
+        "branchColor": "#4f85e8",
+        "index": 2
+      },
+      {
+        "type": "commit",
+        "label": "Implement manga backend foundation, vision/prompt services, …",
+        "commit": {
+          "hash": "1515fedca072442ad0656037229bce50b2e341f3",
+          "subject": "Implement manga backend foundation, vision/prompt services, and image generation SSE routes",
+          "author": "Yuya Fujita",
+          "timestamp": 1770908791,
+          "parents": [
+            "8c4744d51c510fcc1be333b0221792cf33ee728c"
+          ],
+          "parent": "8c4744d51c510fcc1be333b0221792cf33ee728c",
+          "refs": "HEAD -> main",
+          "branches": [
+            "HEAD -> main",
+            "main"
+          ]
+        },
+        "commitHash": "1515fedca072442ad0656037229bce50b2e341f3",
+        "lane": 0,
+        "parentLinks": [
+          {
+            "hash": "8c4744d51c510fcc1be333b0221792cf33ee728c",
+            "lane": 0
+          }
+        ],
+        "primaryBranchName": "main",
+        "branchColor": "#4f85e8",
+        "branchTags": [
+          "main"
+        ],
+        "worktrees": [
+          {
+            "path": "/Users/yuyafujita/Projects/koma-fill",
+            "head": "1515fedca072442ad0656037229bce50b2e341f3",
+            "branch": "main",
+            "isMerged": false,
+            "mergeCommitHash": null,
+            "status": {
+              "staged": [
+                {
+                  "path": "ackage-lock.json",
+                  "originalPath": null,
+                  "status": "modified",
+                  "rawPath": "ackage-lock.json",
+                  "timestamp": 1770909014296
+                }
+              ],
+              "unstaged": [],
+              "untracked": [
+                {
+                  "path": ".kamui/apps/kamui-os-intro-20251125.css",
+                  "status": "untracked",
+                  "rawPath": ".kamui/apps/kamui-os-intro-20251125.css",
+                  "timestamp": 1770909014296
+                },
+                {
+                  "path": ".kamui/apps/kamui-os-intro-20251125.html",
+                  "status": "untracked",
+                  "rawPath": ".kamui/apps/kamui-os-intro-20251125.html",
+                  "timestamp": 1770909014296
+                },
+                {
+                  "path": ".kamui/apps/kamui-os-intro-20251125.js",
+                  "status": "untracked",
+                  "rawPath": ".kamui/apps/kamui-os-intro-20251125.js",
+                  "timestamp": 1770909014296
+                },
+                {
+                  "path": ".kamui/gantte/test.yaml",
+                  "status": "untracked",
+                  "rawPath": ".kamui/gantte/test.yaml",
+                  "timestamp": 1770909014296
+                },
+                {
+                  "path": ".kamui/movie/media/cyberpunk-city-flight.mp4",
+                  "status": "untracked",
+                  "rawPath": ".kamui/movie/media/cyberpunk-city-flight.mp4",
+                  "timestamp": 1770909014296
+                },
+                {
+                  "path": ".kamui/movie/media/cyberpunk-cityscape.png",
+                  "status": "untracked",
+                  "rawPath": ".kamui/movie/media/cyberpunk-cityscape.png",
+                  "timestamp": 1770909014296
+                },
+                {
+                  "path": ".kamui/movie/media/cyberpunk-night/cyberpunk-cityscape.png",
+                  "status": "untracked",
+                  "rawPath": ".kamui/movie/media/cyberpunk-night/cyberpunk-cityscape.png",
+                  "timestamp": 1770909014296
+                },
+                {
+                  "path": ".kamui/movie/media/cyberpunk-night/japanese-alley-scene.png",
+                  "status": "untracked",
+                  "rawPath": ".kamui/movie/media/cyberpunk-night/japanese-alley-scene.png",
+                  "timestamp": 1770909014296
+                },
+                {
+                  "path": ".kamui/movie/media/cyberpunk-night/neon-dreams.mp3",
+                  "status": "untracked",
+                  "rawPath": ".kamui/movie/media/cyberpunk-night/neon-dreams.mp3",
+                  "timestamp": 1770909014296
+                },
+                {
+                  "path": ".kamui/movie/media/cyberpunk-night/rainy-night-lofi.mp3",
+                  "status": "untracked",
+                  "rawPath": ".kamui/movie/media/cyberpunk-night/rainy-night-lofi.mp3",
+                  "timestamp": 1770909014296
+                },
+                {
+                  "path": ".kamui/movie/media/cyberpunk-night/workspace-plus.json",
+                  "status": "untracked",
+                  "rawPath": ".kamui/movie/media/cyberpunk-night/workspace-plus.json",
+                  "timestamp": 1770909014296
+                },
+                {
+                  "path": ".kamui/movie/media/cyberpunk-night/workspace.json",
+                  "status": "untracked",
+                  "rawPath": ".kamui/movie/media/cyberpunk-night/workspace.json",
+                  "timestamp": 1770909014296
+                },
+                {
+                  "path": ".kamui/movie/media/japanese-alley-night.mp4",
+                  "status": "untracked",
+                  "rawPath": ".kamui/movie/media/japanese-alley-night.mp4",
+                  "timestamp": 1770909014296
+                },
+                {
+                  "path": ".kamui/movie/media/japanese-alley-scene.png",
+                  "status": "untracked",
+                  "rawPath": ".kamui/movie/media/japanese-alley-scene.png",
+                  "timestamp": 1770909014296
+                },
+                {
+                  "path": ".kamui/movie/media/neon-dreams.mp3",
+                  "status": "untracked",
+                  "rawPath": ".kamui/movie/media/neon-dreams.mp3",
+                  "timestamp": 1770909014296
+                },
+                {
+                  "path": ".kamui/movie/media/rainy-night-lofi.mp3",
+                  "status": "untracked",
+                  "rawPath": ".kamui/movie/media/rainy-night-lofi.mp3",
+                  "timestamp": 1770909014296
+                },
+                {
+                  "path": ".kamui/movie/media/tokyo-rain/cyberpunk-cityscape.png",
+                  "status": "untracked",
+                  "rawPath": ".kamui/movie/media/tokyo-rain/cyberpunk-cityscape.png",
+                  "timestamp": 1770909014296
+                },
+                {
+                  "path": ".kamui/movie/media/tokyo-rain/japanese-alley-scene.png",
+                  "status": "untracked",
+                  "rawPath": ".kamui/movie/media/tokyo-rain/japanese-alley-scene.png",
+                  "timestamp": 1770909014296
+                },
+                {
+                  "path": ".kamui/movie/media/tokyo-rain/neon-dreams.mp3",
+                  "status": "untracked",
+                  "rawPath": ".kamui/movie/media/tokyo-rain/neon-dreams.mp3",
+                  "timestamp": 1770909014296
+                },
+                {
+                  "path": ".kamui/movie/media/tokyo-rain/rainy-night-lofi.mp3",
+                  "status": "untracked",
+                  "rawPath": ".kamui/movie/media/tokyo-rain/rainy-night-lofi.mp3",
+                  "timestamp": 1770909014296
+                },
+                {
+                  "path": ".kamui/movie/media/tokyo-rain/workspace.json",
+                  "status": "untracked",
+                  "rawPath": ".kamui/movie/media/tokyo-rain/workspace.json",
+                  "timestamp": 1770909014296
+                },
+                {
+                  "path": ".kamui/prompt/merge-prompt.txt",
+                  "status": "untracked",
+                  "rawPath": ".kamui/prompt/merge-prompt.txt",
+                  "timestamp": 1770909014296
+                }
+              ],
+              "capturedAt": 1770909014296
+            },
+            "normalizedPath": "/Users/yuyafujita/Projects/koma-fill",
+            "lane": 0
+          }
+        ],
+        "index": 3
+      },
+      {
+        "type": "commit",
+        "label": "Improve analytics",
+        "commit": {
+          "hash": "def4567ghi",
+          "subject": "Improve analytics",
+          "author": "KAMUI",
+          "timestamp": 1770901562,
+          "parents": [
+            "cde3456fgh"
+          ],
+          "parent": "cde3456fgh",
+          "branches": []
+        },
+        "commitHash": "def4567ghi",
+        "lane": 0,
+        "parentLinks": [
+          {
+            "hash": "cde3456fgh",
+            "lane": 1
+          }
+        ],
+        "branchColor": "#4f85e8",
+        "branchTags": [],
+        "index": 4
+      },
+      {
+        "type": "commit",
+        "label": "first commit",
+        "commit": {
+          "hash": "8c4744d51c510fcc1be333b0221792cf33ee728c",
+          "subject": "first commit",
+          "author": "Yuya Fujita",
+          "timestamp": 1770896882,
+          "parents": [],
+          "parent": null,
+          "refs": "origin/main, origin/HEAD",
+          "branches": [
+            "origin/main",
+            "origin/HEAD",
+            "main"
+          ]
+        },
+        "commitHash": "8c4744d51c510fcc1be333b0221792cf33ee728c",
+        "lane": 0,
+        "parentLinks": [],
+        "primaryBranchName": "main",
+        "branchColor": "#4f85e8",
+        "branchTags": [],
+        "index": 5
+      },
+      {
+        "type": "commit",
+        "label": "Integrate 3D graph",
+        "commit": {
+          "hash": "cde3456fgh",
+          "subject": "Integrate 3D graph",
+          "author": "KAMUI",
+          "timestamp": 1770887162,
+          "parents": [
+            "bcd2345efg"
+          ],
+          "parent": "bcd2345efg",
+          "branches": []
+        },
+        "commitHash": "cde3456fgh",
+        "lane": 0,
+        "parentLinks": [
+          {
+            "hash": "bcd2345efg",
+            "lane": 1
+          }
+        ],
+        "branchColor": "#4f85e8",
+        "branchTags": [],
+        "index": 6
+      },
+      {
+        "type": "commit",
+        "label": "Add taskboard UI",
+        "commit": {
+          "hash": "bcd2345efg",
+          "subject": "Add taskboard UI",
+          "author": "KAMUI",
+          "timestamp": 1770865562,
+          "parents": [
+            "abc1234def"
+          ],
+          "parent": "abc1234def",
+          "branches": []
+        },
+        "commitHash": "bcd2345efg",
+        "lane": 0,
+        "parentLinks": [
+          {
+            "hash": "abc1234def",
+            "lane": 1
+          }
+        ],
+        "branchColor": "#4f85e8",
+        "branchTags": [],
+        "index": 7
+      },
+      {
+        "type": "commit",
+        "label": "Initial commit",
+        "commit": {
+          "hash": "abc1234def",
+          "subject": "Initial commit",
+          "author": "KAMUI",
+          "timestamp": 1770822362,
+          "parents": [],
+          "parent": null,
+          "branches": []
+        },
+        "commitHash": "abc1234def",
+        "lane": 0,
+        "parentLinks": [],
+        "branchColor": "#4f85e8",
+        "branchTags": [],
+        "index": 8
+      },
+      {
+        "type": "empty",
+        "label": "初期状態 (初回コミット以前)",
+        "files": [],
+        "marker": "pre-history",
+        "index": 9
+      }
+    ]
+  },
+  "projectRoot": "/Users/yuyafujita/Projects/koma-fill",
+  "savedAt": 1770909034258
+}

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <title>評価レポート</title>
+  <style>
+    body { font-family: "Hiragino Sans", "Noto Sans JP", sans-serif; margin: 24px; background: #eef3f4; color: #1f2a30; }
+    .wrap { max-width: 1400px; margin: 0 auto; background: #fff; border: 1px solid #c4d3d7; padding: 24px; }
+    h1 { margin: 0 0 8px; }
+    .lead { margin: 0 0 16px; color: #3a4b53; }
+    .scoreboard { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; margin-bottom: 18px; }
+    .score { border: 1px solid #c4d3d7; background: #f4f8f9; padding: 12px; }
+    .score b { font-size: 24px; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    th, td { border: 1px solid #c4d3d7; vertical-align: top; padding: 12px; }
+    th { background: #d8e6e9; text-align: left; }
+    .card { border: 1px solid #c4d3d7; background: #f7fbfc; padding: 10px; margin-bottom: 10px; }
+    .hex { width: 180px; height: 170px; }
+    .kv { font-size: 13px; margin: 2px 0; }
+    .small { font-size: 12px; color: #3a4b53; }
+    code { background: #eef3f4; padding: 1px 4px; }
+    a { color: #274955; }
+    ul { margin: 6px 0 0 18px; padding: 0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>評価レポート（暫定）</h1>
+    <p class="lead">対象: 6 worktreeエージェント。tmux巡回2回 + git差分 + 最新コミット(<code>1515fed</code>)を基に採点。全体完了には未到達のため暫定評価。</p>
+
+    <div class="scoreboard">
+      <div class="score">🏆 task-1770909068262-a5d61b<br><b>480 / 600</b><br>🥇 80点</div>
+      <div class="score">🥈 task-1770909068463-2984dc<br><b>414 / 600</b><br>🥈 69点</div>
+      <div class="score">🏆 task-1770909068675-7f6691<br><b>492 / 600</b><br>🥇 82点</div>
+      <div class="score">⚪ task-1770909068862-42049e<br><b>210 / 600</b><br>⚪ 35点</div>
+      <div class="score">⚪ task-1770909069061-f69cf1<br><b>186 / 600</b><br>⚪ 31点</div>
+      <div class="score">⚪ task-1770909069269-afb680<br><b>258 / 600</b><br>⚪ 43点</div>
+    </div>
+
+    <p class="small">共通参照コミット: <code>1515fed</code> (backend/frontend大規模実装)。追加ローカル差分確認: <code>task-1770909068675-7f6691/backend/src/routes/manga.ts</code>, <code>task-1770909068262-a5d61b/backend/data/.gitkeep</code>。</p>
+
+    <table>
+      <thead>
+        <tr><th>AI名とタスクID</th><th>AI名とタスクID</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <div class="card">
+              <b>Agent A: task-1770909068262-a5d61b</b>
+              <svg class="hex" viewBox="0 0 200 180"><polygon points="100,15 170,50 170,120 100,155 30,120 30,50" fill="none" stroke="#9bb4ba"/><polygon points="100,30 150,55 145,110 100,130 55,110 55,55" fill="#cfe0e4" stroke="#7b99a2"/></svg>
+              <div class="kv">コード品質 82 / 要件充足 84 / 検証 86 / 自律性 80 / コミット品質 62 / 報告品質 86</div>
+              <ul>
+                <li>DB作成、CRUD/reorder/upload疎通、sqlite確認まで実施。</li>
+                <li>差分は主に<code>.gitkeep</code>追加でコミット未了。</li>
+                <li>成果物: <a href="file:///Users/yuyafujita/Projects/koma-fill/.worktrees/task-1770909068262-a5d61b">worktree</a></li>
+              </ul>
+            </div>
+          </td>
+          <td>
+            <div class="card">
+              <b>Agent B: task-1770909068463-2984dc</b>
+              <svg class="hex" viewBox="0 0 200 180"><polygon points="100,15 170,50 170,120 100,155 30,120 30,50" fill="none" stroke="#9bb4ba"/><polygon points="100,50 135,65 130,100 100,115 70,100 65,70" fill="#dbe7ea" stroke="#8aa7af"/></svg>
+              <div class="kv">コード品質 68 / 要件充足 64 / 検証 70 / 自律性 72 / コミット品質 65 / 報告品質 75</div>
+              <ul>
+                <li>未実装箇所の抽出と実装計画は具体的。</li>
+                <li>現時点で`git status`差分なし、成果は未反映。</li>
+                <li>成果物: <a href="file:///Users/yuyafujita/Projects/koma-fill/.worktrees/task-1770909068463-2984dc">worktree</a></li>
+              </ul>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="card">
+              <b>Agent C: task-1770909068675-7f6691</b>
+              <svg class="hex" viewBox="0 0 200 180"><polygon points="100,15 170,50 170,120 100,155 30,120 30,50" fill="none" stroke="#9bb4ba"/><polygon points="100,28 152,55 150,112 100,135 52,112 50,58" fill="#c9dde2" stroke="#7897a0"/></svg>
+              <div class="kv">コード品質 84 / 要件充足 80 / 検証 78 / 自律性 81 / コミット品質 63 / 報告品質 86</div>
+              <ul>
+                <li><code>/regenerate/:panelIndex</code> TODO解消、バリデーション/コスト反映を実装。</li>
+                <li><code>npm run build</code>成功を確認。</li>
+                <li>未コミット差分: <code>backend/src/routes/manga.ts</code></li>
+              </ul>
+            </div>
+          </td>
+          <td>
+            <div class="card">
+              <b>Agent D: task-1770909068862-42049e</b>
+              <svg class="hex" viewBox="0 0 200 180"><polygon points="100,15 170,50 170,120 100,155 30,120 30,50" fill="none" stroke="#9bb4ba"/><polygon points="100,75 112,80 110,92 100,96 90,92 88,82" fill="#e3ecef" stroke="#9bb4ba"/></svg>
+              <div class="kv">コード品質 35 / 要件充足 30 / 検証 25 / 自律性 42 / コミット品質 38 / 報告品質 40</div>
+              <ul>
+                <li>現状説明と選択肢提示が中心。編集・検証ログなし。</li>
+                <li>進捗停滞で完了条件未達。</li>
+                <li>成果物: <a href="file:///Users/yuyafujita/Projects/koma-fill/.worktrees/task-1770909068862-42049e">worktree</a></li>
+              </ul>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="card">
+              <b>Agent E: task-1770909069061-f69cf1</b>
+              <svg class="hex" viewBox="0 0 200 180"><polygon points="100,15 170,50 170,120 100,155 30,120 30,50" fill="none" stroke="#9bb4ba"/><polygon points="100,80 108,84 108,92 100,95 92,92 92,84" fill="#e7eff1" stroke="#a6bcc2"/></svg>
+              <div class="kv">コード品質 30 / 要件充足 28 / 検証 24 / 自律性 36 / コミット品質 35 / 報告品質 33</div>
+              <ul>
+                <li>質問駆動で停止し、成果差分なし。</li>
+                <li>完了判定不可。</li>
+                <li>成果物: <a href="file:///Users/yuyafujita/Projects/koma-fill/.worktrees/task-1770909069061-f69cf1">worktree</a></li>
+              </ul>
+            </div>
+          </td>
+          <td>
+            <div class="card">
+              <b>Agent F: task-1770909069269-afb680</b>
+              <svg class="hex" viewBox="0 0 200 180"><polygon points="100,15 170,50 170,120 100,155 30,120 30,50" fill="none" stroke="#9bb4ba"/><polygon points="100,65 120,75 118,95 100,103 82,96 80,78" fill="#dde8eb" stroke="#90aab1"/></svg>
+              <div class="kv">コード品質 42 / 要件充足 40 / 検証 38 / 自律性 46 / コミット品質 45 / 報告品質 47</div>
+              <ul>
+                <li>実装状況評価は行ったが、コード反映なし。</li>
+                <li>セットアップ提案後に入力待ちで停止。</li>
+                <li>成果物: <a href="file:///Users/yuyafujita/Projects/koma-fill/.worktrees/task-1770909069269-afb680">worktree</a></li>
+              </ul>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>参照したコミット・差分</h2>
+    <ul>
+      <li><code>1515fed</code>: backend/database/repositories/routes/services + frontend設定の大規模実装。</li>
+      <li><code>task-1770909068675-7f6691</code> の未コミット差分: <code>backend/src/routes/manga.ts</code>。</li>
+      <li><code>task-1770909068262-a5d61b</code> の未追跡: <code>backend/data/.gitkeep</code> ほかディレクトリ整備。</li>
+    </ul>
+
+    <h2>改善点</h2>
+    <ul>
+      <li>全エージェントで「差分をコミットしてtask IDと紐づける」運用を必須化。</li>
+      <li>停滞エージェントは質問待ちではなく、最低限の実装・検証まで自走させる。</li>
+      <li>共通ベース実装(<code>1515fed</code>)を事前配布した場合、各Agentの追加責務を明確化する。</li>
+    </ul>
+  </div>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <title>評価レポート</title>
+  <style>
+    body { font-family: "Hiragino Sans", "Noto Sans JP", sans-serif; margin: 24px; background: #eef3f4; color: #1f2a30; }
+    .wrap { max-width: 1420px; margin: 0 auto; background: #fff; border: 1px solid #c4d3d7; padding: 24px; }
+    h1 { margin: 0 0 6px; }
+    .lead { margin: 0 0 14px; color: #3a4b53; }
+    .scoreboard { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin: 12px 0 18px; }
+    .score { border: 1px solid #c4d3d7; background: #f4f8f9; padding: 12px; }
+    .score b { font-size: 26px; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    th, td { border: 1px solid #c4d3d7; vertical-align: top; padding: 12px; }
+    th { background: #d8e6e9; text-align: left; }
+    .card { border: 1px solid #c4d3d7; background: #f7fbfc; padding: 10px; margin-bottom: 10px; }
+    .hex { width: 180px; height: 170px; }
+    .kv { font-size: 13px; margin: 2px 0; }
+    .small { font-size: 12px; color: #3a4b53; }
+    code { background: #eef3f4; padding: 1px 4px; }
+    ul { margin: 6px 0 0 18px; padding: 0; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>評価レポート</h1>
+    <p class="lead">評価開始時点の最新採点。tmux巡回3回・`git status`・`git diff --stat`・最新コミット`1515fed`を根拠に集計。</p>
+
+    <div class="scoreboard">
+      <div class="score">🥇 task-1770909068262-a5d61b<br><b>468 / 600</b><br>78点</div>
+      <div class="score">🏆 task-1770909068463-2984dc<br><b>540 / 600</b><br>90点</div>
+      <div class="score">🥇 task-1770909068675-7f6691<br><b>498 / 600</b><br>83点</div>
+      <div class="score">⚪ task-1770909068862-42049e<br><b>210 / 600</b><br>35点</div>
+      <div class="score">⚪ task-1770909069061-f69cf1<br><b>186 / 600</b><br>31点</div>
+      <div class="score">⚪ task-1770909069269-afb680<br><b>300 / 600</b><br>50点</div>
+    </div>
+
+    <p class="small">仕事の概要: 既存実装を前提に、Task1検証強化・Task3 regenerate実装・Task5フロント導線の大規模編集が発生。未コミット差分が多く、コミット品質指標は減点。</p>
+
+    <table>
+      <thead><tr><th>AI名とタスクID</th><th>AI名とタスクID</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>
+            <div class="card"><b>task-1770909068262-a5d61b</b>
+              <svg class="hex" viewBox="0 0 200 180"><polygon points="100,15 170,50 170,120 100,155 30,120 30,50" fill="none" stroke="#9bb4ba"/><polygon points="100,35 145,58 140,108 100,128 60,108 55,60" fill="#cfe0e4" stroke="#7b99a2"/></svg>
+              <div class="kv">コード品質 80 / 要件充足 82 / 検証 90 / 自律性 72 / コミット品質 56 / 報告品質 88</div>
+              <ul><li>Task1 API疎通・DB検証は良好。</li><li>`rm`確認待ちで停止、完了クローズ未到達。</li></ul>
+            </div>
+          </td>
+          <td>
+            <div class="card"><b>task-1770909068463-2984dc</b>
+              <svg class="hex" viewBox="0 0 200 180"><polygon points="100,15 170,50 170,120 100,155 30,120 30,50" fill="none" stroke="#9bb4ba"/><polygon points="100,25 155,52 150,115 100,138 50,115 45,55" fill="#c9dde2" stroke="#7897a0"/></svg>
+              <div class="kv">コード品質 90 / 要件充足 92 / 検証 88 / 自律性 90 / コミット品質 65 / 報告品質 95</div>
+              <ul><li>frontend中心に11ファイル+新規追加、`npm run build`成功。</li><li>差分量・要件カバレッジは高いが未コミット。</li></ul>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="card"><b>task-1770909068675-7f6691</b>
+              <svg class="hex" viewBox="0 0 200 180"><polygon points="100,15 170,50 170,120 100,155 30,120 30,50" fill="none" stroke="#9bb4ba"/><polygon points="100,32 148,56 146,111 100,132 54,111 52,58" fill="#cddfe3" stroke="#7998a1"/></svg>
+              <div class="kv">コード品質 84 / 要件充足 82 / 検証 80 / 自律性 82 / コミット品質 62 / 報告品質 88</div>
+              <ul><li>`POST /regenerate/:panelIndex`のTODOを解消。</li><li>build成功、変更は単一ファイルに集約。</li></ul>
+            </div>
+          </td>
+          <td>
+            <div class="card"><b>task-1770909068862-42049e</b>
+              <svg class="hex" viewBox="0 0 200 180"><polygon points="100,15 170,50 170,120 100,155 30,120 30,50" fill="none" stroke="#9bb4ba"/><polygon points="100,75 112,80 110,92 100,96 90,92 88,82" fill="#e3ecef" stroke="#9bb4ba"/></svg>
+              <div class="kv">コード品質 35 / 要件充足 30 / 検証 25 / 自律性 42 / コミット品質 38 / 報告品質 40</div>
+              <ul><li>提案中心で進捗停滞。</li><li>差分・コミットとも未確認。</li></ul>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="card"><b>task-1770909069061-f69cf1</b>
+              <svg class="hex" viewBox="0 0 200 180"><polygon points="100,15 170,50 170,120 100,155 30,120 30,50" fill="none" stroke="#9bb4ba"/><polygon points="100,80 108,84 108,92 100,95 92,92 92,84" fill="#e7eff1" stroke="#a6bcc2"/></svg>
+              <div class="kv">コード品質 30 / 要件充足 28 / 検証 24 / 自律性 36 / コミット品質 35 / 報告品質 33</div>
+              <ul><li>質問待ちが継続し、編集実績なし。</li></ul>
+            </div>
+          </td>
+          <td>
+            <div class="card"><b>task-1770909069269-afb680</b>
+              <svg class="hex" viewBox="0 0 200 180"><polygon points="100,15 170,50 170,120 100,155 30,120 30,50" fill="none" stroke="#9bb4ba"/><polygon points="100,60 124,73 122,99 100,109 78,98 76,75" fill="#d7e5e8" stroke="#88a6ae"/></svg>
+              <div class="kv">コード品質 50 / 要件充足 48 / 検証 45 / 自律性 56 / コミット品質 48 / 報告品質 53</div>
+              <ul><li>分析報告後、最新ではfrontend実装指示を受領し着手フェーズへ。</li><li>現時点の差分は未確認。</li></ul>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>参照コミット/差分</h2>
+    <ul>
+      <li><code>1515fed</code>: backend+frontendの共通実装基盤。</li>
+      <li><code>task-1770909068463-2984dc</code>: `git diff --stat` 11 files changed, +927/-460, `ProgressBar.tsx`新規。</li>
+      <li><code>task-1770909068675-7f6691</code>: `backend/src/routes/manga.ts` +56/-5。</li>
+      <li><code>task-1770909068262-a5d61b</code>: `backend/data/`未追跡、実行ログ上でAPI検証済み。</li>
+    </ul>
+  </div>
+</body>
+</html>
