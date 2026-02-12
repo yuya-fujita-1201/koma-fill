@@ -13,7 +13,6 @@ import sharp from 'sharp';
 import PDFDocument from 'pdfkit';
 import fs from 'fs/promises';
 import path from 'path';
-import { Readable } from 'stream';
 
 export interface ExportOptions {
   format: ExportFormat;

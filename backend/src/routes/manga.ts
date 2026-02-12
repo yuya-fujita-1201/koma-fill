@@ -667,7 +667,6 @@ router.post('/:projectId/export', async (req: Request, res: Response, next: Next
       projectId,
       format: exportFormat,
       downloadUrl: `/uploads/${projectId}/${path.basename(filePath)}`,
-      filePath: filePath,
       fileSize: result.fileSize,
     });
   } catch (err) {

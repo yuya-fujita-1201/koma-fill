@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import path from 'path';
 import { errorHandler } from './middleware/errorHandler';
 import mangaRoutes from './routes/manga';
+import { CONFIG } from './config/constants';
 
 const app = express();
 
@@ -13,9 +14,7 @@ const app = express();
 // ============================================
 app.use(helmet());
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? process.env.ALLOWED_ORIGINS?.split(',')
-    : ['http://localhost:3000'],
+  origin: CONFIG.ALLOWED_ORIGINS,
 }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));

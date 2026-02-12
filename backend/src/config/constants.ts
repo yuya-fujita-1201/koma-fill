@@ -19,6 +19,9 @@ export const CONFIG = {
   PORT: parseInt(process.env.PORT || '5000', 10),
   NODE_ENV: process.env.NODE_ENV || 'development',
   BASE_URL: process.env.BASE_URL || 'http://localhost:5000',
+  ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',')
+    : ['http://localhost:3000'],
 
   // OpenAI
   OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',

@@ -139,7 +139,7 @@ export class LayoutEngine {
           break;
       }
 
-      const bubbleSvg = this.generateSpeechBubbleSvg(bubble, panelPos, targetY);
+      const bubbleSvg = this.generateSpeechBubbleSvg(bubble, panelPos, targetY, layout.width, layout.height);
       return {
         input: bubbleSvg,
         top: 0,
@@ -260,11 +260,43 @@ ${rects}
   private generateSpeechBubbleSvg(
     bubble: SpeechBubble,
     panelPos: PanelPosition,
-    targetY: number
+    targetY: number,
+    layoutWidth: number,
+    layoutHeight: number
   ): Buffer {
     const bubbleWidth = Math.min(panelPos.width - 40, 300);
-    const bubbleHeight = 60;
     const bubbleX = panelPos.x + (panelPos.width - bubbleWidth) / 2;
+
+    // テキストを複数行に分割（日本語対応: 文字数ベース折り返し）
+    const maxCharsPerLine = 15;
+    const lines: string[] = [];
+    const hasSpaces = bubble.text.includes(' ');
+
+    if (hasSpaces) {
+      // 英語テキスト: スペース区切り
+      const words = bubble.text.split(' ');
+      let currentLine = '';
+      for (const word of words) {
+        if ((currentLine + word).length > maxCharsPerLine) {
+          if (currentLine) lines.push(currentLine.trim());
+          currentLine = word + ' ';
+        } else {
+          currentLine += word + ' ';
+        }
+      }
+      if (currentLine) lines.push(currentLine.trim());
+    } else {
+      // 日本語テキスト: 文字数で折り返し
+      const text = bubble.text;
+      for (let i = 0; i < text.length; i += maxCharsPerLine) {
+        lines.push(text.slice(i, i + maxCharsPerLine));
+      }
+    }
+
+    // 行数に応じて吹き出し高さを動的に計算
+    const lineHeight = 20;
+    const verticalPadding = 20;
+    const bubbleHeight = Math.max(50, lines.length * lineHeight + verticalPadding);
 
     let shapePath: string;
     switch (bubble.style) {
@@ -296,28 +328,12 @@ ${rects}
         break;
     }
 
-    // テキストを複数行に分割（簡易版）
-    const words = bubble.text.split(' ');
-    const lines: string[] = [];
-    let currentLine = '';
-    const maxCharsPerLine = 30;
-
-    for (const word of words) {
-      if ((currentLine + word).length > maxCharsPerLine) {
-        if (currentLine) lines.push(currentLine.trim());
-        currentLine = word + ' ';
-      } else {
-        currentLine += word + ' ';
-      }
-    }
-    if (currentLine) lines.push(currentLine.trim());
-
-    const textElements = lines.slice(0, 2).map((line, i) =>
-      `<text x="${bubbleX + bubbleWidth / 2}" y="${targetY + 25 + i * 20}" ` +
+    const textElements = lines.map((line, i) =>
+      `<text x="${bubbleX + bubbleWidth / 2}" y="${targetY + 25 + i * lineHeight}" ` +
       `font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="black">${this.escapeXml(line)}</text>`
     ).join('\n');
 
-    const svg = `<svg width="${panelPos.width + panelPos.x}" height="${panelPos.height + panelPos.y}" xmlns="http://www.w3.org/2000/svg">
+    const svg = `<svg width="${layoutWidth}" height="${layoutHeight}" xmlns="http://www.w3.org/2000/svg">
 ${shapePath}
 ${textElements}
 </svg>`;

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { ImagePosition, UploadedImage } from '../types';
 
@@ -17,16 +17,19 @@ function normalizePosition(value: string): ImagePosition {
 
 export default function ImageUploader({ onImagesChange, maxImages = 2 }: ImageUploaderProps) {
   const [images, setImages] = useState<UploadedImage[]>([]);
+  const imagesRef = useRef<UploadedImage[]>([]);
 
   useEffect(() => {
+    imagesRef.current = images;
     onImagesChange(images);
   }, [images, onImagesChange]);
 
+  // アンマウント時のみ残っているObjectURLを解放
   useEffect(() => {
     return () => {
-      images.forEach((image) => URL.revokeObjectURL(image.previewUrl));
+      imagesRef.current.forEach((image) => URL.revokeObjectURL(image.previewUrl));
     };
-  }, [images]);
+  }, []);
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
