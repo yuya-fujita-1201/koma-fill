@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="utf-8" /><title>監査レポート</title>
+<style>
+body{font-family:"Hiragino Sans","Noto Sans JP",sans-serif;line-height:1.6;margin:24px;background:#e9f0f2;color:#1f2a30}
+.monitor-wrapper{max-width:1480px;margin:0 auto;padding:32px;background:#fff;border:1px solid #c4d3d7}
+.monitor-title{font-size:26px;font-weight:700}.monitor-description{font-size:14px;color:#3a4b53}
+table.monitor-report{width:100%;border-collapse:collapse;table-layout:fixed;border:1px solid #c4d3d7}
+col.timestamp-column{width:180px} col.agent-column{width:calc((100% - 180px)/6)}
+th,td{border:1px solid #c4d3d7;padding:16px;vertical-align:top;background:#fff} th{background:#d8e6e9;text-align:left;font-size:12px}
+tbody tr:nth-child(even) td{background:#eef3f4} details summary{list-style:none}.details-toggle{cursor:pointer;font-size:13px}.details-toggle::before{content:"▶";font-size:10px;display:inline-block;transition:transform 160ms ease;margin-right:6px}details[open] .details-toggle::before{transform:rotate(90deg)}
+pre{white-space:pre-wrap;word-break:break-word;margin:0;font-size:12px;line-height:1.55;background:#f2f6f7;border:1px solid #c4d3d7;padding:16px}
+.status-badge{display:inline-block;font-size:10px;font-weight:600;padding:1px 6px;border:1px solid #b8c9cd;background:#d8e6e9}.status-badge--running{background:#dce8eb}.status-badge--completed{background:#d2e2e6}.status-badge--pending{background:#e6eef0}
+.agent-label{font-size:13px;color:#3a4b53}
+</style></head>
+<body><div class="monitor-wrapper"><h1 class="monitor-title">監査レポート</h1><p class="monitor-description">評価開始時点の最新巡回。コミット有無・差分有無で進捗判定。</p>
+<table class="monitor-report"><colgroup><col class="timestamp-column"/><col class="agent-column"/><col class="agent-column"/><col class="agent-column"/><col class="agent-column"/><col class="agent-column"/><col class="agent-column"/></colgroup>
+<thead><tr><th>Timestamp</th><th>task-...a5d61b</th><th>task-...2984dc</th><th>task-...7f6691</th><th>task-...42049e</th><th>task-...f69cf1</th><th>task-...afb680</th></tr></thead><tbody>
+<tr><td>2026-02-13 02:47</td>
+<td><span class="status-badge status-badge--running">実装進行</span> <span class="agent-label">Task1検証済みだが`rm`承認待ちで未完了。</span><details><summary class="details-toggle">ログ詳細</summary><pre>status: ?? backend/data/
+最新出力: rm実行確認待ちプロンプト</pre></details></td>
+<td><span class="status-badge status-badge--completed">完了</span> <span class="agent-label">frontend実装をコミット済み・mainへマージ済み。</span><details><summary class="details-toggle">ログ詳細</summary><pre>commit: f504fb3
+main merge: 65530e0
+worktree status: clean</pre></details></td>
+<td><span class="status-badge status-badge--running">実装進行</span> <span class="agent-label">regenerate API実装済みだが未コミット差分あり。</span><details><summary class="details-toggle">ログ詳細</summary><pre>status: M backend/src/routes/manga.ts
+build成功ログあり</pre></details></td>
+<td><span class="status-badge status-badge--pending">停滞</span> <span class="agent-label">提案止まりで差分なし。</span><details><summary class="details-toggle">ログ詳細</summary><pre>status: clean
+実装/コミットログなし</pre></details></td>
+<td><span class="status-badge status-badge--pending">停滞</span> <span class="agent-label">タスク選択質問のまま停止。</span><details><summary class="details-toggle">ログ詳細</summary><pre>status: clean
+実装/コミットログなし</pre></details></td>
+<td><span class="status-badge status-badge--pending">停滞</span> <span class="agent-label">frontend着手指示受領のみ、差分未確認。</span><details><summary class="details-toggle">ログ詳細</summary><pre>status: clean
+ログは提案中心</pre></details></td>
+</tr></tbody></table></div></body></html>
