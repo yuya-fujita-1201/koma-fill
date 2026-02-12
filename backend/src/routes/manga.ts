@@ -439,11 +439,67 @@ router.get('/:projectId/generate-images', handleGenerateImages);
 router.post('/:projectId/regenerate/:panelIndex', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { projectId, panelIndex } = req.params;
-    // TODO: [Agent C] 指定パネルを新しいプロンプトで再生成
-    res.json({
-      message: 'TODO: Implement panel regeneration',
+    const parsedPanelIndex = Number(panelIndex);
+    if (Number.isNaN(parsedPanelIndex) || parsedPanelIndex < 0) {
+      throw new ValidationError('panelIndex must be a non-negative integer');
+    }
+
+    const project = await projectRepository.getProject(projectId);
+    if (!project) {
+      throw new NotFoundError('Project');
+    }
+
+    const targetPanel = project.panels.find((panel) => panel.panelIndex === parsedPanelIndex);
+    if (!targetPanel) {
+      throw new NotFoundError(`Panel index ${parsedPanelIndex}`);
+    }
+
+    const requestedPrompt = typeof req.body?.newPrompt === 'string'
+      ? req.body.newPrompt.trim()
+      : '';
+    const prompt = requestedPrompt || targetPanel.prompt;
+    if (!prompt) {
+      throw new ValidationError('No prompt found for target panel');
+    }
+
+    const panelPrompt: PanelPrompt = {
+      panelIndex: parsedPanelIndex,
+      dallePrompt: prompt,
+      storyBeat: targetPanel.storyBeat ?? `Panel ${parsedPanelIndex + 1}`,
+      visualFocus: 'main subject',
+      transitionType: 'cut',
+    };
+
+    const generatedPanels = await imageGenerationService.generateBatch(
+      [panelPrompt],
       projectId,
-      panelIndex,
+      'sequential',
+      project.generationSettings
+    );
+
+    if (generatedPanels.length === 0) {
+      throw new Error(`Panel ${parsedPanelIndex} regeneration failed`);
+    }
+
+    const generated = generatedPanels[0];
+    const updated = await panelRepository.updatePanel(targetPanel.id, {
+      imageUrl: generated.imageUrl,
+      imageFilePath: generated.localFilePath,
+      prompt: generated.revisedPrompt ?? generated.prompt,
+      status: 'generated',
+      retryCount: targetPanel.retryCount + 1,
+      generatedAt: new Date().toISOString(),
+    });
+
+    await projectRepository.updateProject(projectId, {
+      totalCost: project.totalCost + generated.costUsd,
+      status: 'generating',
+    });
+
+    res.json({
+      message: 'Panel regenerated successfully',
+      panel: updated,
+      costUsd: generated.costUsd,
     });
   } catch (err) {
     next(err);

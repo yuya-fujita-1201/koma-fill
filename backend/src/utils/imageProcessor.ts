@@ -1,72 +1,78 @@
 /**
  * ImageProcessor
  * 画像の前処理ユーティリティ
- *
- * 担当: Agent C / Agent D (共有ユーティリティ)
  */
 
-// import sharp from 'sharp';
-// import fs from 'fs/promises';
-// import path from 'path';
+import sharp from 'sharp';
+import fs from 'fs/promises';
+import path from 'path';
 
-/**
- * 画像をBase64に変換
- */
 export async function imageToBase64(filePath: string): Promise<string> {
-  // TODO: fs.readFile() → Buffer.toString('base64')
-  throw new Error('Not implemented');
+  const buffer = await fs.readFile(filePath);
+  return buffer.toString('base64');
 }
 
-/**
- * Base64を画像ファイルに変換
- */
 export async function base64ToImage(base64: string, outputPath: string): Promise<void> {
-  // TODO: Buffer.from(base64, 'base64') → fs.writeFile()
-  throw new Error('Not implemented');
+  const buffer = Buffer.from(base64, 'base64');
+  await fs.mkdir(path.dirname(outputPath), { recursive: true });
+  await fs.writeFile(outputPath, buffer);
 }
 
-/**
- * 画像をリサイズ
- */
 export async function resizeImage(
   inputPath: string,
   width: number,
   height: number,
   fit: 'cover' | 'contain' | 'fill' = 'cover'
 ): Promise<Buffer> {
-  // TODO: sharp(inputPath).resize(width, height, { fit }).toBuffer()
-  throw new Error('Not implemented');
+  return sharp(inputPath)
+    .resize(width, height, { fit })
+    .toBuffer();
 }
 
-/**
- * 画像のメタデータを取得
- */
 export async function getImageMetadata(filePath: string): Promise<{
   width: number;
   height: number;
   format: string;
   size: number;
 }> {
-  // TODO: sharp(filePath).metadata()
-  throw new Error('Not implemented');
+  const [metadata, stats] = await Promise.all([sharp(filePath).metadata(), fs.stat(filePath)]);
+
+  return {
+    width: metadata.width ?? 0,
+    height: metadata.height ?? 0,
+    format: metadata.format ?? 'unknown',
+    size: stats.size,
+  };
 }
 
-/**
- * 画像にボーダーを追加
- */
 export async function addBorder(
   imageBuffer: Buffer,
   borderWidth: number,
   borderColor: string
 ): Promise<Buffer> {
-  // TODO: sharp の extend + flatten で実装
-  throw new Error('Not implemented');
+  if (borderWidth <= 0) {
+    return imageBuffer;
+  }
+
+  return sharp(imageBuffer)
+    .extend({
+      top: borderWidth,
+      bottom: borderWidth,
+      left: borderWidth,
+      right: borderWidth,
+      background: borderColor,
+    })
+    .toBuffer();
 }
 
-/**
- * URLから画像をダウンロード
- */
 export async function downloadImage(url: string, outputPath: string): Promise<string> {
-  // TODO: axios.get(url, { responseType: 'arraybuffer' }) → fs.writeFile()
-  throw new Error('Not implemented');
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to download image: HTTP ${response.status}`);
+  }
+
+  const arrayBuffer = await response.arrayBuffer();
+  await fs.mkdir(path.dirname(outputPath), { recursive: true });
+  await fs.writeFile(outputPath, Buffer.from(arrayBuffer));
+  return outputPath;
 }

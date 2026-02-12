@@ -1,21 +1,3 @@
-/**
- * StoryPromptEditor - ストーリープロンプト入力コンポーネント
- *
- * 担当: Agent E
- *
- * Props:
- * - value: string
- * - onChange: (value: string) => void
- * - imageStyle: string
- * - onStyleChange: (style: string) => void
- *
- * 機能:
- * - テキストエリアでストーリー入力
- * - 文字数カウンター
- * - スタイルプリセット選択 (manga, comic, watercolor, etc.)
- * - サンプルプロンプト表示
- */
-
 interface StoryPromptEditorProps {
   value: string;
   onChange: (value: string) => void;
@@ -44,28 +26,28 @@ export default function StoryPromptEditor({
   imageStyle,
   onStyleChange,
 }: StoryPromptEditorProps) {
-  // TODO: [Agent E] テキストエリア + スタイル選択 + サンプル表示
   return (
     <div className="space-y-4">
       <textarea
-        className="w-full h-32 p-4 border border-gray-300 rounded-lg resize-y
+        className="w-full h-36 p-4 border border-gray-300 rounded-lg resize-y
                    focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        placeholder="ストーリーを入力してください...&#10;例: 少女が雨の中で子猫を見つけ、傘を差し出して一緒に帰る物語"
+        placeholder="ストーリーを入力してください..."
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
+
       <div className="flex justify-between text-sm text-gray-400">
         <span>{value.length} 文字</span>
         <span>推奨: 50〜300文字</span>
       </div>
 
-      {/* スタイル選択 */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">画風スタイル</label>
         <div className="flex flex-wrap gap-2">
           {STYLE_PRESETS.map((preset) => (
             <button
               key={preset.value}
+              type="button"
               className={`px-3 py-1 rounded-full text-sm border transition-colors
                 ${imageStyle === preset.value
                   ? 'bg-blue-600 text-white border-blue-600'
@@ -74,6 +56,22 @@ export default function StoryPromptEditor({
               onClick={() => onStyleChange(preset.value)}
             >
               {preset.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <p className="text-sm font-medium text-gray-700 mb-2">サンプルプロンプト</p>
+        <div className="space-y-2">
+          {SAMPLE_PROMPTS.map((sample) => (
+            <button
+              key={sample}
+              type="button"
+              className="w-full text-left text-sm border border-gray-200 rounded-lg p-3 bg-gray-50 hover:bg-gray-100"
+              onClick={() => onChange(sample)}
+            >
+              {sample}
             </button>
           ))}
         </div>
