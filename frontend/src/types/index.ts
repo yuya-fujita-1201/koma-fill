@@ -3,10 +3,6 @@
  * バックエンドの types.ts と対応
  */
 
-// ============================================
-// Core Types (バックエンドと共有)
-// ============================================
-
 export type ProjectStatus = 'draft' | 'analyzing' | 'generating' | 'complete' | 'exported';
 export type PanelStatus = 'pending' | 'generated' | 'failed' | 'placeholder';
 export type LayoutFormat = 'vertical' | 'horizontal' | 'square';
@@ -33,6 +29,7 @@ export interface Panel {
   projectId: string;
   panelIndex: number;
   imageUrl?: string;
+  imageFilePath?: string;
   prompt?: string;
   storyBeat?: string;
   speechBubbleText?: string;
@@ -44,7 +41,8 @@ export interface Panel {
 export interface KeyImage {
   id: string;
   position: ImagePosition;
-  previewUrl: string; // フロントエンド用プレビューURL
+  imageFilePath?: string;
+  previewUrl?: string;
   analysis?: ImageAnalysis;
 }
 
@@ -67,12 +65,30 @@ export interface LayoutConfig {
   pageHeight: number;
 }
 
+export const DEFAULT_LAYOUT_CONFIG: LayoutConfig = {
+  totalPanels: 4,
+  format: 'vertical',
+  readingOrder: 'japanese',
+  gutterSize: 10,
+  borderWidth: 2,
+  borderColor: '#000000',
+  backgroundColor: '#FFFFFF',
+  pageWidth: 800,
+  pageHeight: 1200,
+};
+
 export interface GenerationSettings {
   imageStyle: string;
   aspectRatio: 'square' | 'wide' | 'tall';
   qualityLevel: 'standard' | 'hd';
   negativePrompt?: string;
 }
+
+export const DEFAULT_GENERATION_SETTINGS: GenerationSettings = {
+  imageStyle: 'manga style, black and white ink drawing',
+  aspectRatio: 'square',
+  qualityLevel: 'standard',
+};
 
 export interface SpeechBubble {
   panelIndex: number;
@@ -81,10 +97,6 @@ export interface SpeechBubble {
   style: 'rounded' | 'cloud' | 'spiked' | 'rectangular';
 }
 
-// ============================================
-// UI State Types
-// ============================================
-
 export interface UploadedImage {
   file: File;
   previewUrl: string;
@@ -92,7 +104,14 @@ export interface UploadedImage {
 }
 
 export interface GenerationProgress {
-  stage: 'idle' | 'uploading' | 'analyzing' | 'generating_prompts' | 'generating_images' | 'composing_layout' | 'exporting';
+  stage:
+    | 'idle'
+    | 'uploading'
+    | 'analyzing'
+    | 'generating_prompts'
+    | 'generating_images'
+    | 'composing_layout'
+    | 'exporting';
   currentStep: number;
   totalSteps: number;
   percentage: number;
@@ -101,7 +120,6 @@ export interface GenerationProgress {
 }
 
 export interface MangaStore {
-  // State
   project: MangaProject | null;
   uploadedImages: UploadedImage[];
   storyPrompt: string;
@@ -110,7 +128,6 @@ export interface MangaStore {
   progress: GenerationProgress;
   error: string | null;
 
-  // Actions
   setStoryPrompt: (prompt: string) => void;
   addUploadedImage: (image: UploadedImage) => void;
   removeUploadedImage: (index: number) => void;
