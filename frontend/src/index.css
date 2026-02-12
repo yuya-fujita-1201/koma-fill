@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* カスタムスタイル */
+body {
+  font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
+}

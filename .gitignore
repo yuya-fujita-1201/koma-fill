@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build output
+backend/dist/
+frontend/dist/
+*.js.map
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads & Generated files
+uploads/
+output/
+*.generated.png
+*.generated.jpg
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Test
+coverage/
+
+# SQLite
+*.sqlite
+*.sqlite3
+*.db

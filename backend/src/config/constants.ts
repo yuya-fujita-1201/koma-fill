@@ -1,0 +1,42 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
+export const CONFIG = {
+  // Server
+  PORT: parseInt(process.env.PORT || '5000', 10),
+  NODE_ENV: process.env.NODE_ENV || 'development',
+  BASE_URL: process.env.BASE_URL || 'http://localhost:5000',
+
+  // OpenAI
+  OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
+  OPENAI_ORG_ID: process.env.OPENAI_ORG_ID,
+
+  // Rate Limits
+  DALLE_RATE_LIMIT_PER_MINUTE: parseInt(process.env.DALLE_RATE_LIMIT_PER_MINUTE || '5', 10),
+  VISION_RATE_LIMIT_PER_MINUTE: parseInt(process.env.VISION_RATE_LIMIT_PER_MINUTE || '30', 10),
+  MAX_RETRIES_PER_PANEL: parseInt(process.env.MAX_RETRIES_PER_PANEL || '3', 10),
+  MAX_PANELS_PER_PROJECT: parseInt(process.env.MAX_PANELS_PER_PROJECT || '12', 10),
+
+  // Storage
+  STORAGE_PATH: process.env.STORAGE_PATH || './uploads',
+  MAX_IMAGE_SIZE_MB: parseInt(process.env.MAX_IMAGE_SIZE_MB || '20', 10),
+
+  // DALL-E 3 Model Settings
+  DALLE_MODEL: 'dall-e-3' as const,
+  VISION_MODEL: 'gpt-4o' as const,
+  PROMPT_MODEL: 'gpt-4o' as const,
+
+  // Image Defaults
+  PANEL_SIZE: {
+    SQUARE: { width: 1024, height: 1024 },
+    WIDE: { width: 1792, height: 1024 },
+    TALL: { width: 1024, height: 1792 },
+  },
+} as const;
+
+// Validate required config
+export function validateConfig(): void {
+  if (!CONFIG.OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY is required. Set it in .env file.');
+  }
+}
