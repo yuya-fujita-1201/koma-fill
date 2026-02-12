@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="utf-8"/><title>評価レポート</title>
+<style>
+body{font-family:"Hiragino Sans","Noto Sans JP",system-ui;margin:20px;background:#eef3f4;color:#1f2a30}
+.wrap{max-width:1220px;margin:0 auto;background:#fff;border:1px solid #c4d3d7;padding:24px}
+h1{margin:0 0 8px}.lead{font-size:14px;color:#3a4b53}
+.top{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
+.card{border:1px solid #c4d3d7;background:#f2f6f7;padding:10px}.card b{font-size:22px}
+table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{border:1px solid #c4d3d7;padding:12px;vertical-align:top}th{background:#d8e6e9;text-align:left}
+.small{font-size:12px;color:#3a4b53} ul{margin:8px 0 0 18px}
+</style></head><body><div class="wrap">
+<h1>評価レポート（再評価）</h1>
+<p class="lead">tmux最新出力・作業差分・ビルド結果（backend/frontendともに成功）を反映。<br>コミット履歴は <code>8c4744d first commit</code> のみで、担当別コミットは未提出のため差分ベース評価。</p>
+<div class="top">
+<div class="card">AI-B task-1770907489956-37caab<br><b>🏆 564 / 600</b></div>
+<div class="card">AI-D task-1770907490355-5b957d<br><b>🥇 516 / 600</b></div>
+<div class="card">AI-E task-1770907490555-df8ecc<br><b>🥈 504 / 600</b></div>
+<div class="card">AI-A task-1770907489756-8a57d1<br><b>🥈 480 / 600</b></div>
+<div class="card">AI-C task-1770907490155-df3da2<br><b>🥉 432 / 600</b></div>
+<div class="card">AI-F task-1770907490755-498fc1<br><b>❌ 90 / 600</b></div>
+</div>
+<table><thead><tr><th>AI名とTaskID</th><th>評価（6指標と根拠）</th></tr></thead><tbody>
+<tr><td><b>task-1770907489956-37caab</b><div class="small">gold / 94点</div></td><td>六角指標: 品質94 完成度95 要件適合93 テスト88 進捗92 運用58<ul><li>Task1基盤に加えTask2/3まで実装報告。<code>imageAnalysisService.ts</code> <code>promptGenerationService.ts</code> <code>manga.ts</code> 拡張。</li><li>backend build 成功を確認。</li><li>改善: 担当コミットがない。</li></ul></td></tr>
+<tr><td><b>task-1770907490355-5b957d</b><div class="small">gold / 86点</div></td><td>六角指標: 品質85 完成度88 要件適合86 テスト82 進捗90 運用55<ul><li>tmux上でTask1-5完了報告。<code>exportService.ts</code> <code>layoutEngine.ts</code> など差分反映が確認できる状態。</li><li>バックエンド/フロント稼働確認ログあり。</li><li>改善: 証跡が口頭中心でコミット不在。</li></ul></td></tr>
+<tr><td><b>task-1770907490555-df8ecc</b><div class="small">silver / 84点</div></td><td>六角指標: 品質83 完成度84 要件適合84 テスト86 進捗88 運用60<ul><li>環境再構築・サーバ確認・API確認を実施し、統合動作の裏取りを実施。</li><li>frontend build 成功、API応答確認ログあり。</li><li>改善: 実装差分の担当境界が不明瞭。</li></ul></td></tr>
+<tr><td><b>task-1770907489756-8a57d1</b><div class="small">silver / 80点</div></td><td>六角指標: 品質80 完成度78 要件適合80 テスト79 進捗84 運用52<ul><li>Vision/Prompt生成周りの実装とAPI実行まで進め、外部権限403を切り分け。</li><li>実行時問題をHTTP 502として把握し報告。</li><li>改善: コミットおよび最終統合まで未完。</li></ul></td></tr>
+<tr><td><b>task-1770907490155-df3da2</b><div class="small">bronze / 72点</div></td><td>六角指標: 品質74 完成度68 要件適合70 テスト72 進捗78 運用70<ul><li>ImagePosition型不一致を修正し build を通した点は有効。</li><li>主タスク実装よりも修正支援寄り。</li></ul></td></tr>
+<tr><td><b>task-1770907490755-498fc1</b><div class="small">none / 15点</div></td><td>六角指標: 品質0 完成度0 要件適合8 テスト0 進捗32 運用50<ul><li>作業パス探索で停止し、実装成果なし。</li><li>失格理由: タスク完了判定に必要なコード差分・検証結果が未提出。</li></ul></td></tr>
+</tbody></table>
+<p class="small">参照: <code>backend/src/database/*</code>, <code>backend/src/repositories/*</code>, <code>backend/src/services/*</code>, <code>frontend/*</code>, tmux各セッション出力, <code>git log</code>（baselineのみ）。</p>
+</div></body></html>

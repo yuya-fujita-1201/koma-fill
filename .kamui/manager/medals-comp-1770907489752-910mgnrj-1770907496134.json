@@ -1,0 +1,35 @@
+{
+  "results": [
+    {
+      "taskId": "task-1770907489756-8a57d1",
+      "medal": "none",
+      "score": 52
+    },
+    {
+      "taskId": "task-1770907489956-37caab",
+      "medal": "gold",
+      "score": 90
+    },
+    {
+      "taskId": "task-1770907490155-df3da2",
+      "medal": "silver",
+      "score": 82
+    },
+    {
+      "taskId": "task-1770907490355-5b957d",
+      "medal": "none",
+      "score": 20
+    },
+    {
+      "taskId": "task-1770907490555-df8ecc",
+      "medal": "none",
+      "score": 25
+    },
+    {
+      "taskId": "task-1770907490755-498fc1",
+      "medal": "none",
+      "score": 18
+    }
+  ],
+  "updatedAt": "2026-02-12T23:52:30Z"
+}

@@ -1,78 +1,154 @@
 /**
  * ImageAnalysisService
  * OpenAI Vision API を使ってキー画像を分析する
- *
- * 担当: Agent B
- * 依存: openai パッケージ, CONFIG
- * 出力: ImageAnalysis 型
  */
 
-import { ImageAnalysis, CharacterInfo } from '../models/types';
+import OpenAI from 'openai';
+import { CharacterInfo, ImageAnalysis } from '../models/types';
 import { CONFIG } from '../config/constants';
-// import OpenAI from 'openai';
+import { OpenAIError, ValidationError } from '../middleware/errorHandler';
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function normalizeAnalysis(input: unknown): ImageAnalysis {
+  if (!input || typeof input !== 'object') {
+    throw new ValidationError('Invalid analysis response format');
+  }
+
+  const obj = input as Record<string, unknown>;
+  const charactersRaw = Array.isArray(obj.characters) ? obj.characters : [];
+  const characters = charactersRaw.map((character) => {
+    const c = (character ?? {}) as Record<string, unknown>;
+    return {
+      name: typeof c.name === 'string' ? c.name : undefined,
+      appearance: typeof c.appearance === 'string' ? c.appearance : 'unspecified appearance',
+      emotion: typeof c.emotion === 'string' ? c.emotion : 'neutral',
+      position: typeof c.position === 'string' ? c.position : 'unspecified',
+    };
+  });
+
+  return {
+    description: typeof obj.description === 'string' ? obj.description : '',
+    characters,
+    objects: Array.isArray(obj.objects) ? obj.objects.map(String) : [],
+    colors: Array.isArray(obj.colors) ? obj.colors.map(String) : [],
+    composition: typeof obj.composition === 'string' ? obj.composition : '',
+    mood: typeof obj.mood === 'string' ? obj.mood : '',
+    artStyle: typeof obj.artStyle === 'string' ? obj.artStyle : '',
+    suggestedTransitions: Array.isArray(obj.suggestedTransitions)
+      ? obj.suggestedTransitions.map(String)
+      : [],
+  };
+}
 
 export class ImageAnalysisService {
-  // TODO: OpenAI クライアント初期化
-  // private openai: OpenAI;
+  private openai: OpenAI;
 
   constructor() {
-    // TODO: new OpenAI({ apiKey: CONFIG.OPENAI_API_KEY })
+    this.openai = new OpenAI({
+      apiKey: CONFIG.OPENAI_API_KEY,
+      organization: CONFIG.OPENAI_ORG_ID,
+    });
   }
 
-  /**
-   * 単一画像を分析
-   * Vision API に画像を送り、シーン・キャラクター・ムードを抽出
-   *
-   * @param imageBase64 Base64エンコードされた画像データ
-   * @param depth 'quick' = 簡易分析, 'detailed' = 詳細分析
-   * @returns ImageAnalysis
-   *
-   * 実装ガイド:
-   * 1. openai.chat.completions.create() で gpt-4o を呼ぶ
-   * 2. messages に image_url タイプで Base64 画像を含める
-   * 3. system prompt でJSON形式の出力を指示
-   * 4. レスポンスをパースして ImageAnalysis 型に変換
-   */
   async analyzeImage(imageBase64: string, depth: 'quick' | 'detailed'): Promise<ImageAnalysis> {
-    // TODO: 実装
-    // const systemPrompt = depth === 'quick'
-    //   ? QUICK_ANALYSIS_PROMPT
-    //   : DETAILED_ANALYSIS_PROMPT;
-    //
-    // const response = await this.openai.chat.completions.create({
-    //   model: CONFIG.VISION_MODEL,
-    //   messages: [
-    //     { role: 'system', content: systemPrompt },
-    //     { role: 'user', content: [
-    //       { type: 'image_url', image_url: { url: `data:image/png;base64,${imageBase64}` } }
-    //     ]}
-    //   ],
-    //   response_format: { type: 'json_object' },
-    //   max_tokens: depth === 'quick' ? 500 : 2000,
-    // });
-    //
-    // return parseAnalysisResponse(response);
+    const systemPrompt = depth === 'quick' ? QUICK_ANALYSIS_PROMPT : DETAILED_ANALYSIS_PROMPT;
 
-    throw new Error('Not implemented');
+    try {
+      const response = await this.openai.chat.completions.create({
+        model: CONFIG.VISION_MODEL,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'image_url',
+                image_url: {
+                  url: `data:image/png;base64,${imageBase64}`,
+                },
+              },
+            ],
+          },
+        ],
+        response_format: { type: 'json_object' },
+        max_tokens: depth === 'quick' ? 500 : 2000,
+      });
+
+      const content = response.choices[0]?.message?.content;
+      if (!content) {
+        throw new OpenAIError('Vision response content is empty');
+      }
+
+      const parsed = JSON.parse(content);
+      return normalizeAnalysis(parsed);
+    } catch (err) {
+      if (err instanceof ValidationError || err instanceof OpenAIError) {
+        throw err;
+      }
+
+      const message = err instanceof Error ? err.message : 'Unknown Vision API error';
+      throw new OpenAIError(message);
+    }
   }
 
-  /**
-   * 複数画像を一括分析
-   */
   async analyzeMultiple(
     images: { base64: string; position: string }[],
     depth: 'quick' | 'detailed'
   ): Promise<ImageAnalysis[]> {
-    // TODO: Promise.all で並列分析（レートリミット考慮）
-    throw new Error('Not implemented');
+    if (images.length === 0) {
+      return [];
+    }
+
+    const intervalMs = Math.ceil(60000 / Math.max(CONFIG.VISION_RATE_LIMIT_PER_MINUTE, 1));
+    const maxConcurrency = Math.max(1, Math.min(4, Math.floor(CONFIG.VISION_RATE_LIMIT_PER_MINUTE / 10) || 1));
+
+    const results: ImageAnalysis[] = new Array(images.length);
+    let cursor = 0;
+
+    const worker = async (): Promise<void> => {
+      while (true) {
+        const current = cursor;
+        cursor += 1;
+
+        if (current >= images.length) {
+          return;
+        }
+
+        const item = images[current];
+        let attempt = 0;
+
+        while (attempt < 3) {
+          try {
+            results[current] = await this.analyzeImage(item.base64, depth);
+            break;
+          } catch (err) {
+            const message = err instanceof Error ? err.message.toLowerCase() : '';
+            const shouldRetry = message.includes('rate') || message.includes('429') || message.includes('timeout');
+
+            if (!shouldRetry || attempt >= 2) {
+              throw err;
+            }
+
+            const backoff = Math.min(5000, 1000 * 2 ** attempt);
+            await sleep(backoff + Math.floor(Math.random() * 300));
+            attempt += 1;
+          }
+        }
+
+        await sleep(intervalMs);
+      }
+    };
+
+    await Promise.all(Array.from({ length: Math.min(maxConcurrency, images.length) }, () => worker()));
+
+    return results;
   }
 
-  /**
-   * 分析結果からキャラクター情報を抽出
-   */
   async extractCharacters(analysis: ImageAnalysis): Promise<CharacterInfo[]> {
-    // TODO: 既存の分析からキャラ情報を深掘り
-    throw new Error('Not implemented');
+    return analysis.characters;
   }
 }
 

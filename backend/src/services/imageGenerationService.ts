@@ -7,12 +7,12 @@
  * 出力: 生成された画像ファイル
  */
 
-import { PanelPrompt, ProgressEvent, GenerationSettings } from '../models/types';
+import fs from 'fs/promises';
+import path from 'path';
+import OpenAI from 'openai';
+import { APIError } from 'openai/error';
+import { API_COSTS, PanelPrompt, ProgressEvent, GenerationSettings } from '../models/types';
 import { CONFIG } from '../config/constants';
-// import OpenAI from 'openai';
-// import fs from 'fs/promises';
-// import path from 'path';
-// import { v4 as uuidv4 } from 'uuid';
 
 export interface GeneratedPanel {
   panelIndex: number;
@@ -23,28 +23,22 @@ export interface GeneratedPanel {
   costUsd: number;
 }
 
+const BASE_RETRY_DELAY_MS = 1000;
+
 export class ImageGenerationService {
-  // TODO: OpenAI クライアント初期化
-  // private openai: OpenAI;
+  private openai: OpenAI;
+  private uploadDir: string;
 
   constructor() {
-    // TODO: new OpenAI({ apiKey: CONFIG.OPENAI_API_KEY })
+    this.openai = new OpenAI({
+      apiKey: CONFIG.OPENAI_API_KEY,
+      organization: CONFIG.OPENAI_ORG_ID,
+    });
+    this.uploadDir = path.resolve(CONFIG.STORAGE_PATH);
   }
 
   /**
    * 単一パネルの画像を生成
-   *
-   * @param prompt DALL-E 3 に送るプロンプト
-   * @param panelIndex パネルのインデックス
-   * @param settings 生成設定
-   * @returns GeneratedPanel
-   *
-   * 実装ガイド:
-   * 1. openai.images.generate() を呼ぶ
-   * 2. model: 'dall-e-3', size: settings に基づく
-   * 3. レスポンスの url から画像をダウンロード
-   * 4. ローカルストレージに保存
-   * 5. revised_prompt も保存（DALL-E 3はプロンプトを修正することがある）
    */
   async generatePanel(
     prompt: string,
@@ -52,43 +46,38 @@ export class ImageGenerationService {
     projectId: string,
     settings?: GenerationSettings
   ): Promise<GeneratedPanel> {
-    // TODO: 実装
-    // const size = this.getImageSize(settings?.aspectRatio || 'square');
-    //
-    // const response = await this.openai.images.generate({
-    //   model: CONFIG.DALLE_MODEL,
-    //   prompt: prompt,
-    //   n: 1,
-    //   size: size,
-    //   quality: settings?.qualityLevel || 'standard',
-    // });
-    //
-    // const imageUrl = response.data[0].url!;
-    // const revisedPrompt = response.data[0].revised_prompt;
-    //
-    // // 画像をダウンロードしてローカル保存
-    // const localPath = await this.downloadAndSave(imageUrl, projectId, panelIndex);
-    //
-    // return {
-    //   panelIndex,
-    //   imageUrl,
-    //   localFilePath: localPath,
-    //   prompt,
-    //   revisedPrompt,
-    //   costUsd: settings?.qualityLevel === 'hd' ? 0.08 : 0.04,
-    // };
+    const size = this.getImageSize(settings?.aspectRatio ?? 'square');
+    const quality = settings?.qualityLevel === 'hd' ? 'hd' : 'standard';
 
-    throw new Error('Not implemented');
+    const response = await this.openai.images.generate({
+      model: CONFIG.DALLE_MODEL,
+      prompt,
+      n: 1,
+      size,
+      quality,
+      style: 'natural',
+    });
+
+    const first = response.data?.[0];
+    const imageUrl = first?.url;
+    if (!imageUrl) {
+      throw new Error(`DALL-E response did not include image URL for panel ${panelIndex}`);
+    }
+
+    const localPath = await this.downloadAndSave(imageUrl, projectId, panelIndex);
+
+    return {
+      panelIndex,
+      imageUrl,
+      localFilePath: localPath,
+      prompt,
+      revisedPrompt: first?.revised_prompt,
+      costUsd: quality === 'hd' ? API_COSTS.DALLE3_HD : API_COSTS.DALLE3_STANDARD,
+    };
   }
 
   /**
    * バッチ生成（複数パネル）
-   * 進捗をコールバックで通知
-   *
-   * @param panelPrompts 各パネルのプロンプト
-   * @param projectId プロジェクトID
-   * @param batchMode 'sequential' = 順番に生成, 'parallel' = 同時生成
-   * @param onProgress 進捗コールバック
    */
   async generateBatch(
     panelPrompts: PanelPrompt[],
@@ -97,14 +86,15 @@ export class ImageGenerationService {
     settings?: GenerationSettings,
     onProgress?: (event: ProgressEvent) => void
   ): Promise<GeneratedPanel[]> {
-    // TODO: 実装
-    // if (batchMode === 'sequential') {
-    //   return this.generateSequential(panelPrompts, projectId, settings, onProgress);
-    // } else {
-    //   return this.generateParallel(panelPrompts, projectId, settings, onProgress);
-    // }
+    if (!Array.isArray(panelPrompts) || panelPrompts.length === 0) {
+      throw new Error('panelPrompts is required and must not be empty');
+    }
 
-    throw new Error('Not implemented');
+    if (batchMode === 'parallel') {
+      return this.generateParallel(panelPrompts, projectId, settings, onProgress);
+    }
+
+    return this.generateSequential(panelPrompts, projectId, settings, onProgress);
   }
 
   /**
@@ -116,11 +106,44 @@ export class ImageGenerationService {
     settings?: GenerationSettings,
     onProgress?: (event: ProgressEvent) => void
   ): Promise<GeneratedPanel[]> {
-    // TODO: for ループで1つずつ生成
-    // TODO: 各生成後に onProgress を呼ぶ
-    // TODO: 失敗時はリトライ (MAX_RETRIES_PER_PANEL 回まで)
-    // TODO: リトライ間に指数バックオフ待機
-    throw new Error('Not implemented');
+    const total = panelPrompts.length;
+    const results: GeneratedPanel[] = [];
+
+    for (let i = 0; i < total; i += 1) {
+      const panelPrompt = panelPrompts[i];
+      try {
+        const generated = await this.generatePanelWithRetry(panelPrompt, projectId, settings, 0);
+        results.push(generated);
+
+        onProgress?.({
+          type: 'progress',
+          stage: 'generating_images',
+          currentStep: i + 1,
+          totalSteps: total,
+          percentage: Math.round(((i + 1) / total) * 100),
+          message: `Generated panel ${panelPrompt.panelIndex}`,
+          panelIndex: panelPrompt.panelIndex,
+        });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        onProgress?.({
+          type: 'error',
+          stage: 'generating_images',
+          currentStep: i + 1,
+          totalSteps: total,
+          percentage: Math.round(((i + 1) / total) * 100),
+          message: `Failed panel ${panelPrompt.panelIndex}`,
+          panelIndex: panelPrompt.panelIndex,
+          error: errorMessage,
+        });
+      }
+
+      if (i < total - 1) {
+        await this.sleep(this.getRequestSpacingMs());
+      }
+    }
+
+    return results;
   }
 
   /**
@@ -132,10 +155,85 @@ export class ImageGenerationService {
     settings?: GenerationSettings,
     onProgress?: (event: ProgressEvent) => void
   ): Promise<GeneratedPanel[]> {
-    // TODO: Promise.allSettled で同時生成
-    // TODO: DALLE_RATE_LIMIT_PER_MINUTE を超えないようにバッチ分割
-    // TODO: 失敗したものだけリトライ
-    throw new Error('Not implemented');
+    const total = panelPrompts.length;
+    const maxConcurrent = Math.max(1, Math.floor(CONFIG.DALLE_RATE_LIMIT_PER_MINUTE / 2));
+    const results: GeneratedPanel[] = [];
+    const failed: PanelPrompt[] = [];
+    let completed = 0;
+
+    for (let start = 0; start < total; start += maxConcurrent) {
+      const batch = panelPrompts.slice(start, start + maxConcurrent);
+      const settled = await Promise.allSettled(
+        batch.map((panelPrompt) => this.generatePanelWithRetry(panelPrompt, projectId, settings, 0))
+      );
+
+      settled.forEach((item, idx) => {
+        const panelPrompt = batch[idx];
+        completed += 1;
+
+        if (item.status === 'fulfilled') {
+          results.push(item.value);
+          onProgress?.({
+            type: 'progress',
+            stage: 'generating_images',
+            currentStep: completed,
+            totalSteps: total,
+            percentage: Math.round((completed / total) * 100),
+            message: `Generated panel ${panelPrompt.panelIndex}`,
+            panelIndex: panelPrompt.panelIndex,
+          });
+        } else {
+          failed.push(panelPrompt);
+          const errorMessage = item.reason instanceof Error ? item.reason.message : 'Unknown error';
+          onProgress?.({
+            type: 'error',
+            stage: 'generating_images',
+            currentStep: completed,
+            totalSteps: total,
+            percentage: Math.round((completed / total) * 100),
+            message: `Failed panel ${panelPrompt.panelIndex}`,
+            panelIndex: panelPrompt.panelIndex,
+            error: errorMessage,
+          });
+        }
+      });
+
+      if (start + maxConcurrent < total) {
+        await this.sleep(this.getRequestSpacingMs() * batch.length);
+      }
+    }
+
+    for (const panelPrompt of failed) {
+      try {
+        const regenerated = await this.generatePanelWithRetry(panelPrompt, projectId, settings, 0);
+        results.push(regenerated);
+      } catch {
+        // 既に進捗イベントで通知済みのためここでは握りつぶす
+      }
+    }
+
+    return results.sort((a, b) => a.panelIndex - b.panelIndex);
+  }
+
+  private async generatePanelWithRetry(
+    panelPrompt: PanelPrompt,
+    projectId: string,
+    settings?: GenerationSettings,
+    retryCount = 0
+  ): Promise<GeneratedPanel> {
+    try {
+      return await this.generatePanel(panelPrompt.dallePrompt, panelPrompt.panelIndex, projectId, settings);
+    } catch (error) {
+      const isRetryable = this.isRetryableError(error);
+      if (!isRetryable || retryCount >= CONFIG.MAX_RETRIES_PER_PANEL) {
+        const message = error instanceof Error ? error.message : 'Unknown generation error';
+        throw new Error(`Panel ${panelPrompt.panelIndex} failed after retries: ${message}`);
+      }
+
+      const backoff = this.calculateBackoffMs(retryCount);
+      await this.sleep(backoff);
+      return this.generatePanelWithRetry(panelPrompt, projectId, settings, retryCount + 1);
+    }
   }
 
   /**
@@ -146,10 +244,21 @@ export class ImageGenerationService {
     projectId: string,
     panelIndex: number
   ): Promise<string> {
-    // TODO: axios.get(imageUrl, { responseType: 'arraybuffer' })
-    // TODO: fs.writeFile() でローカル保存
-    // TODO: パス: uploads/{projectId}/panel_{panelIndex}.png
-    throw new Error('Not implemented');
+    const projectDir = path.join(this.uploadDir, projectId);
+    await fs.mkdir(projectDir, { recursive: true });
+
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      throw new Error(`Image download failed with status ${response.status}`);
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const filePath = path.join(projectDir, `panel_${panelIndex}.png`);
+    await fs.writeFile(filePath, buffer);
+
+    return filePath;
   }
 
   /**
@@ -161,6 +270,31 @@ export class ImageGenerationService {
       case 'tall': return '1024x1792';
       default: return '1024x1024';
     }
+  }
+
+  private getRequestSpacingMs(): number {
+    return Math.max(1000, Math.ceil(60000 / Math.max(1, CONFIG.DALLE_RATE_LIMIT_PER_MINUTE)));
+  }
+
+  private calculateBackoffMs(attempt: number): number {
+    const jitter = Math.floor(Math.random() * 500);
+    return BASE_RETRY_DELAY_MS * (2 ** attempt) + jitter;
+  }
+
+  private isRetryableError(error: unknown): boolean {
+    if (error instanceof APIError) {
+      return error.status === 429 || (error.status !== undefined && error.status >= 500);
+    }
+
+    if (error instanceof Error) {
+      return /timeout|network|rate limit|429|5\d\d/i.test(error.message);
+    }
+
+    return false;
+  }
+
+  private async sleep(ms: number): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 

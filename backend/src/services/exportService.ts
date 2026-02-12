@@ -9,10 +9,11 @@
 
 import { ExportFormat } from '../models/types';
 import { ComposedLayout } from './layoutEngine';
-// import sharp from 'sharp';
-// import PDFDocument from 'pdfkit';
-// import fs from 'fs/promises';
-// import path from 'path';
+import sharp from 'sharp';
+import PDFDocument from 'pdfkit';
+import fs from 'fs/promises';
+import path from 'path';
+import { Readable } from 'stream';
 
 export interface ExportOptions {
   format: ExportFormat;
@@ -45,12 +46,23 @@ export class ExportService {
     layout: ComposedLayout,
     options: ExportOptions
   ): Promise<ExportResult> {
-    // TODO: 実装
-    // const compressionLevel = options.compression === 'low' ? 9 : options.compression === 'medium' ? 6 : 1;
-    // const buffer = await sharp(layout.buffer)
-    //   .png({ compressionLevel })
-    //   .toBuffer();
-    throw new Error('Not implemented');
+    const compressionLevel = options.compression === 'high' ? 9 : options.compression === 'medium' ? 6 : 1;
+    const dpi = options.resolution === 'print' ? 300 : 72;
+
+    const buffer = await sharp(layout.buffer)
+      .png({ compressionLevel })
+      .withMetadata({ density: dpi })
+      .toBuffer();
+
+    return {
+      buffer,
+      format: 'png',
+      fileSize: buffer.length,
+      width: layout.width,
+      height: layout.height,
+      dpi,
+      filePath: '', // Set by saveToFile
+    };
   }
 
   /**
@@ -60,12 +72,23 @@ export class ExportService {
     layout: ComposedLayout,
     options: ExportOptions
   ): Promise<ExportResult> {
-    // TODO: 実装
-    // const quality = options.compression === 'low' ? 60 : options.compression === 'medium' ? 80 : 95;
-    // const buffer = await sharp(layout.buffer)
-    //   .jpeg({ quality })
-    //   .toBuffer();
-    throw new Error('Not implemented');
+    const quality = options.compression === 'low' ? 60 : options.compression === 'medium' ? 80 : 95;
+    const dpi = options.resolution === 'print' ? 300 : 72;
+
+    const buffer = await sharp(layout.buffer)
+      .jpeg({ quality, mozjpeg: true })
+      .withMetadata({ density: dpi })
+      .toBuffer();
+
+    return {
+      buffer,
+      format: 'jpg',
+      fileSize: buffer.length,
+      width: layout.width,
+      height: layout.height,
+      dpi,
+      filePath: '', // Set by saveToFile
+    };
   }
 
   /**
@@ -81,14 +104,41 @@ export class ExportService {
     layout: ComposedLayout,
     options: ExportOptions
   ): Promise<ExportResult> {
-    // TODO: 実装
-    // const doc = new PDFDocument({
-    //   size: [layout.width, layout.height],
-    //   info: { Title: options.title, Author: options.author },
-    // });
-    // doc.image(layout.buffer, 0, 0, { width: layout.width, height: layout.height });
-    // doc.end();
-    throw new Error('Not implemented');
+    const dpi = options.resolution === 'print' ? 300 : 72;
+
+    return new Promise((resolve, reject) => {
+      const chunks: Buffer[] = [];
+      const doc = new PDFDocument({
+        size: [layout.width, layout.height],
+        info: {
+          Title: options.title || 'Manga',
+          Author: options.author || 'koma-fill',
+        },
+      });
+
+      doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+      doc.on('end', () => {
+        const buffer = Buffer.concat(chunks);
+        resolve({
+          buffer,
+          format: 'pdf',
+          fileSize: buffer.length,
+          width: layout.width,
+          height: layout.height,
+          dpi,
+          filePath: '', // Set by saveToFile
+        });
+      });
+      doc.on('error', reject);
+
+      // 画像を埋め込む
+      doc.image(layout.buffer, 0, 0, {
+        width: layout.width,
+        height: layout.height,
+      });
+
+      doc.end();
+    });
   }
 
   /**
@@ -114,9 +164,20 @@ export class ExportService {
     outputDir: string,
     filename: string
   ): Promise<string> {
-    // TODO: fs.writeFile() で保存
-    // TODO: パス: output/{filename}.{format}
-    throw new Error('Not implemented');
+    // ディレクトリを作成（存在しない場合）
+    await fs.mkdir(outputDir, { recursive: true });
+
+    // ファイル名に拡張子を追加
+    const fullFilename = filename.endsWith(`.${result.format}`)
+      ? filename
+      : `${filename}.${result.format}`;
+
+    const filePath = path.join(outputDir, fullFilename);
+
+    // ファイルを保存
+    await fs.writeFile(filePath, result.buffer);
+
+    return filePath;
   }
 }
 

@@ -1,12 +1,13 @@
 import app from './app';
 import { CONFIG, validateConfig } from './config/constants';
+import { initDatabase } from './database/connection';
 
 async function main() {
   // 環境変数バリデーション
   validateConfig();
 
-  // TODO: DB初期化 (better-sqlite3)
-  // await initDatabase();
+  await initDatabase();
+  console.log(`🗄️ Database: ✓ configured (${CONFIG.DATABASE_PATH})`);
 
   // サーバー起動
   app.listen(CONFIG.PORT, () => {

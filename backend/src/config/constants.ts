@@ -1,5 +1,18 @@
 import dotenv from 'dotenv';
-dotenv.config();
+import fs from 'fs';
+import path from 'path';
+
+const envCandidates = [
+  path.resolve(process.cwd(), '.env'),
+  path.resolve(process.cwd(), '..', '.env'),
+];
+
+for (const envPath of envCandidates) {
+  if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+    break;
+  }
+}
 
 export const CONFIG = {
   // Server
@@ -18,6 +31,7 @@ export const CONFIG = {
   MAX_PANELS_PER_PROJECT: parseInt(process.env.MAX_PANELS_PER_PROJECT || '12', 10),
 
   // Storage
+  DATABASE_PATH: process.env.DATABASE_PATH || './data/koma-fill.db',
   STORAGE_PATH: process.env.STORAGE_PATH || './uploads',
   MAX_IMAGE_SIZE_MB: parseInt(process.env.MAX_IMAGE_SIZE_MB || '20', 10),
 

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <title>評価レポート</title>
+  <style>
+    body { font-family: "Hiragino Sans","Noto Sans JP",system-ui; margin: 20px; background:#eef3f4; color:#1f2a30; }
+    .wrap { max-width: 1240px; margin: 0 auto; background:#fff; border:1px solid #c4d3d7; padding:24px; }
+    h1 { margin:0 0 8px; }
+    .summary { font-size:14px; color:#3a4b53; margin-bottom:16px; }
+    .score-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin-bottom:18px; }
+    .score-card { border:1px solid #c4d3d7; background:#f2f6f7; padding:10px; }
+    .score-card b { font-size:22px; }
+    table { width:100%; border-collapse:collapse; table-layout: fixed; }
+    th,td { border:1px solid #c4d3d7; padding:12px; vertical-align:top; }
+    th { background:#d8e6e9; text-align:left; }
+    .agent { font-weight:700; }
+    .small { font-size:12px; color:#3a4b53; }
+    ul { margin:8px 0 0 18px; }
+    .chart { display:block; margin:4px 0 8px; }
+    .fail { color:#8a2e2e; font-weight:700; }
+    code { background:#f2f6f7; padding:1px 4px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>KAMUI-4D タスク評価レポート</h1>
+  <p class="summary">対象: comp-1770907489752-910mgnrj / 監査時刻: 2026-02-12。<br>コミット確認結果: <code>git log</code> は <code>8c4744d first commit</code> のみで、各AIの新規コミットは未確認。評価は tmux出力と未コミット差分（<code>git diff</code>）に基づく。</p>
+
+  <div class="score-grid">
+    <div class="score-card"><div>AI-B task-1770907489956-37caab</div><b>🥇 540 / 600</b></div>
+    <div class="score-card"><div>AI-C task-1770907490155-df3da2</div><b>🥈 468 / 600</b></div>
+    <div class="score-card"><div>AI-A task-1770907489756-8a57d1</div><b>⚪️ 312 / 600</b></div>
+    <div class="score-card"><div>AI-D task-1770907490355-5b957d</div><b class="fail">❌ 120 / 600</b></div>
+    <div class="score-card"><div>AI-E task-1770907490555-df8ecc</div><b>⚪️ 150 / 600</b></div>
+    <div class="score-card"><div>AI-F task-1770907490755-498fc1</div><b>⚪️ 108 / 600</b></div>
+  </div>
+
+  <table>
+    <thead><tr><th>AI名とTaskID</th><th>評価詳細（6指標・根拠・成果物・参照コミット）</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><div class="agent">AI-B task-1770907489956-37caab</div><div class="small">メダル: 🥇 gold / 90点</div></td>
+        <td>
+          <svg class="chart" width="220" height="170" viewBox="0 0 220 170"><polygon points="110,20 170,50 170,110 110,140 50,110 50,50" fill="#eef3f4" stroke="#c4d3d7"/><polygon points="110,28 162,54 160,104 110,130 64,104 60,54" fill="#d8e6e9" stroke="#8fa9b0"/></svg>
+          <div>指標: コード品質90 / 完成度92 / 要件適合91 / テスト80 / 進捗報告92 / コミット運用55</div>
+          <ul>
+            <li>根拠: <code>backend/src/database/connection.ts</code> <code>backend/src/database/schema.ts</code> <code>backend/src/repositories/*.ts</code> を実装、<code>backend/src/routes/manga.ts</code> のTask1対象APIを実装。</li>
+            <li>根拠: tmux上で <code>npm run build</code> 成功・SQLiteテーブル作成確認を報告。</li>
+            <li>改善点: コミット未作成。変更分を論理単位で分割コミットすべき。</li>
+            <li>成果物: <code>backend/src/database/connection.ts</code>, <code>backend/src/routes/manga.ts</code>, <code>backend/src/repositories/projectRepository.ts</code></li>
+            <li>参照コミット: <code>8c4744d (baseline only)</code></li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td><div class="agent">AI-C task-1770907490155-df3da2</div><div class="small">メダル: 🥈 silver / 82点</div></td>
+        <td>
+          <svg class="chart" width="220" height="170" viewBox="0 0 220 170"><polygon points="110,20 170,50 170,110 110,140 50,110 50,50" fill="#eef3f4" stroke="#c4d3d7"/><polygon points="110,34 154,58 154,100 110,124 70,100 66,58" fill="#d8e6e9" stroke="#8fa9b0"/></svg>
+          <div>指標: コード品質84 / 完成度85 / 要件適合83 / テスト65 / 進捗報告88 / コミット運用63</div>
+          <ul>
+            <li>根拠: <code>backend/src/services/imageGenerationService.ts</code> でDALL-E生成、リトライ、保存、進捗通知を実装。</li>
+            <li>根拠: <code>backend/src/routes/manga.ts</code> にSSE対応 <code>/generate-images</code> と <code>/regenerate</code> を追加。</li>
+            <li>改善点: 全体ビルド成功まで持ち切れていない（他タスク依存を理由に終了）。</li>
+            <li>成果物: <code>backend/src/services/imageGenerationService.ts</code>, <code>backend/src/routes/manga.ts</code></li>
+            <li>参照コミット: <code>8c4744d (baseline only)</code></li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td><div class="agent">AI-A task-1770907489756-8a57d1</div><div class="small">メダル: ⚪️ none / 52点</div></td>
+        <td>
+          <svg class="chart" width="220" height="170" viewBox="0 0 220 170"><polygon points="110,20 170,50 170,110 110,140 50,110 50,50" fill="#eef3f4" stroke="#c4d3d7"/><polygon points="110,50 138,66 138,94 110,108 82,94 82,66" fill="#d8e6e9" stroke="#8fa9b0"/></svg>
+          <div>指標: コード品質55 / 完成度48 / 要件適合50 / テスト60 / 進捗報告66 / コミット運用33</div>
+          <ul>
+            <li>根拠: tmux上では検証・起動確認が中心で、独立した新規差分の識別が困難。</li>
+            <li>改善点: 担当範囲の実装確定・成果物境界・コミット提出が必要。</li>
+            <li>成果物リンク: 明確な専有差分なし（同一working treeへ混在）。</li>
+            <li>参照コミット: <code>8c4744d (baseline only)</code></li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td><div class="agent">AI-D task-1770907490355-5b957d</div><div class="small">メダル: ⚪️ none / 20点</div></td>
+        <td>
+          <svg class="chart" width="220" height="170" viewBox="0 0 220 170"><polygon points="110,20 170,50 170,110 110,140 50,110 50,50" fill="#eef3f4" stroke="#c4d3d7"/><polygon points="110,70 120,76 120,84 110,90 100,84 100,76" fill="#d8e6e9" stroke="#8fa9b0"/></svg>
+          <div>指標: コード品質0 / 完成度0 / 要件適合5 / テスト0 / 進捗報告45 / コミット運用70</div>
+          <ul>
+            <li class="fail">失格理由: 認証エラーで長時間停止。実装差分なし。</li>
+            <li>ログイン後に探索再開したが、実装工程へ未到達。</li>
+            <li>参照コミット: <code>8c4744d (baseline only)</code></li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td><div class="agent">AI-E task-1770907490555-df8ecc</div><div class="small">メダル: ⚪️ none / 25点</div></td>
+        <td>
+          <svg class="chart" width="220" height="170" viewBox="0 0 220 170"><polygon points="110,20 170,50 170,110 110,140 50,110 50,50" fill="#eef3f4" stroke="#c4d3d7"/><polygon points="110,66 124,74 124,86 110,94 96,86 96,74" fill="#d8e6e9" stroke="#8fa9b0"/></svg>
+          <div>指標: コード品質0 / 完成度0 / 要件適合10 / テスト0 / 進捗報告58 / コミット運用82</div>
+          <ul>
+            <li>根拠: プロジェクト特定・ファイル棚卸しまで。コード修正・コミットなし。</li>
+            <li>改善点: 依存導入から実装までを同セッションで完結すべき。</li>
+            <li>参照コミット: <code>8c4744d (baseline only)</code></li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td><div class="agent">AI-F task-1770907490755-498fc1</div><div class="small">メダル: ⚪️ none / 18点</div></td>
+        <td>
+          <svg class="chart" width="220" height="170" viewBox="0 0 220 170"><polygon points="110,20 170,50 170,110 110,140 50,110 50,50" fill="#eef3f4" stroke="#c4d3d7"/><polygon points="110,72 118,77 118,83 110,88 102,83 102,77" fill="#d8e6e9" stroke="#8fa9b0"/></svg>
+          <div>指標: コード品質0 / 完成度0 / 要件適合5 / テスト0 / 進捗報告40 / コミット運用63</div>
+          <ul>
+            <li>根拠: 認証復旧後もworktree探索で停止。実装差分なし。</li>
+            <li>改善点: 指定パス不整合時の即時フォールバック手順を標準化すること。</li>
+            <li>参照コミット: <code>8c4744d (baseline only)</code></li>
+          </ul>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+</body>
+</html>

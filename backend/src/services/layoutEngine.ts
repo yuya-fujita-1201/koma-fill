@@ -8,8 +8,8 @@
  */
 
 import { LayoutConfig, SpeechBubble, DEFAULT_LAYOUT_CONFIG } from '../models/types';
-// import sharp from 'sharp';
-// import path from 'path';
+import sharp from 'sharp';
+import fs from 'fs/promises';
 
 export interface ComposedLayout {
   buffer: Buffer;
@@ -49,35 +49,51 @@ export class LayoutEngine {
     panelImagePaths: string[],
     config: LayoutConfig = DEFAULT_LAYOUT_CONFIG
   ): Promise<ComposedLayout> {
-    // TODO: 実装
-    // const grid = this.calculateGrid(panelImagePaths.length, config);
-    // const positions = this.calculatePanelPositions(grid, config);
-    //
-    // // 背景キャンバス作成
-    // let canvas = sharp({
-    //   create: {
-    //     width: config.pageWidth,
-    //     height: config.pageHeight,
-    //     channels: 4,
-    //     background: config.backgroundColor,
-    //   }
-    // });
-    //
-    // // パネルを配置
-    // const composites = await Promise.all(
-    //   panelImagePaths.map(async (imgPath, i) => {
-    //     const resized = await sharp(imgPath)
-    //       .resize(positions[i].width, positions[i].height, { fit: 'cover' })
-    //       .toBuffer();
-    //     return { input: resized, left: positions[i].x, top: positions[i].y };
-    //   })
-    // );
-    //
-    // const buffer = await canvas.composite(composites).png().toBuffer();
-    //
-    // return { buffer, width: config.pageWidth, height: config.pageHeight, format: 'png', panelPositions: positions };
+    const grid = this.calculateGrid(panelImagePaths.length, config);
+    const positions = this.calculatePanelPositions(grid, config);
 
-    throw new Error('Not implemented');
+    // 背景キャンバス作成
+    const canvas = sharp({
+      create: {
+        width: config.pageWidth,
+        height: config.pageHeight,
+        channels: 4,
+        background: config.backgroundColor,
+      }
+    });
+
+    // パネルを配置
+    const composites = await Promise.all(
+      panelImagePaths.map(async (imgPath, i) => {
+        // ファイルの存在確認
+        try {
+          await fs.access(imgPath);
+        } catch {
+          throw new Error(`Panel image not found: ${imgPath}`);
+        }
+
+        const resized = await sharp(imgPath)
+          .resize(positions[i].width, positions[i].height, { fit: 'cover', withoutEnlargement: false })
+          .toBuffer();
+        return { input: resized, left: positions[i].x, top: positions[i].y };
+      })
+    );
+
+    // ボーダーSVGを生成
+    let result = canvas.composite(composites);
+
+    if (config.borderWidth > 0) {
+      const borderSvg = this.generateBorderSvg(positions, config);
+      result = result.composite([{
+        input: borderSvg,
+        top: 0,
+        left: 0
+      }]);
+    }
+
+    const buffer = await result.png().toBuffer();
+
+    return { buffer, width: config.pageWidth, height: config.pageHeight, format: 'png', panelPositions: positions };
   }
 
   /**
@@ -96,15 +112,48 @@ export class LayoutEngine {
     layout: ComposedLayout,
     bubbles: SpeechBubble[]
   ): Promise<ComposedLayout> {
-    // TODO: 実装
-    // 各バブルについて:
-    // 1. panelIndex からパネルの位置を取得
-    // 2. position (top/middle/bottom) からバブルの座標を計算
-    // 3. style に応じたSVGシェイプを生成
-    // 4. テキストを含むSVGを作成
-    // 5. composite で重ね合わせ
+    if (!bubbles || bubbles.length === 0) {
+      return layout;
+    }
 
-    throw new Error('Not implemented');
+    let result = sharp(layout.buffer);
+    const panelPositionMap = new Map(layout.panelPositions.map(p => [p.panelIndex, p]));
+
+    const bubbleSvgs = bubbles.map((bubble) => {
+      const panelPos = panelPositionMap.get(bubble.panelIndex);
+      if (!panelPos) {
+        throw new Error(`Panel ${bubble.panelIndex} not found in layout`);
+      }
+
+      let targetY: number;
+      switch (bubble.position) {
+        case 'top':
+          targetY = panelPos.y + 30;
+          break;
+        case 'bottom':
+          targetY = panelPos.y + panelPos.height - 60;
+          break;
+        case 'middle':
+        default:
+          targetY = panelPos.y + panelPos.height / 2 - 30;
+          break;
+      }
+
+      const bubbleSvg = this.generateSpeechBubbleSvg(bubble, panelPos, targetY);
+      return {
+        input: bubbleSvg,
+        top: 0,
+        left: 0
+      };
+    });
+
+    result = result.composite(bubbleSvgs);
+    const buffer = await result.toBuffer();
+
+    return {
+      ...layout,
+      buffer
+    };
   }
 
   /**
@@ -181,8 +230,111 @@ export class LayoutEngine {
     layout: ComposedLayout,
     size: { width: number; height: number } = { width: 200, height: 300 }
   ): Promise<Buffer> {
-    // TODO: sharp(layout.buffer).resize(size.width, size.height).toBuffer()
-    throw new Error('Not implemented');
+    return await sharp(layout.buffer)
+      .resize(size.width, size.height, { fit: 'inside' })
+      .toBuffer();
+  }
+
+  /**
+   * ボーダーSVGを生成
+   */
+  private generateBorderSvg(
+    positions: PanelPosition[],
+    config: LayoutConfig
+  ): Buffer {
+    const rects = positions.map(pos =>
+      `<rect x="${pos.x}" y="${pos.y}" width="${pos.width}" height="${pos.height}" ` +
+      `fill="none" stroke="${config.borderColor}" stroke-width="${config.borderWidth}" />`
+    ).join('\n');
+
+    const svg = `<svg width="${config.pageWidth}" height="${config.pageHeight}" xmlns="http://www.w3.org/2000/svg">
+${rects}
+</svg>`;
+
+    return Buffer.from(svg, 'utf-8');
+  }
+
+  /**
+   * 吹き出しSVGを生成
+   */
+  private generateSpeechBubbleSvg(
+    bubble: SpeechBubble,
+    panelPos: PanelPosition,
+    targetY: number
+  ): Buffer {
+    const bubbleWidth = Math.min(panelPos.width - 40, 300);
+    const bubbleHeight = 60;
+    const bubbleX = panelPos.x + (panelPos.width - bubbleWidth) / 2;
+
+    let shapePath: string;
+    switch (bubble.style) {
+      case 'cloud':
+        // 雲型（簡易版）
+        shapePath = `<ellipse cx="${bubbleX + bubbleWidth / 2}" cy="${targetY + bubbleHeight / 2}" ` +
+          `rx="${bubbleWidth / 2}" ry="${bubbleHeight / 2}" fill="white" stroke="black" stroke-width="2" />`;
+        break;
+      case 'spiked':
+        // トゲ型（思考吹き出し）
+        shapePath = `<polygon points="${bubbleX},${targetY + 20} ${bubbleX + 20},${targetY} ` +
+          `${bubbleX + bubbleWidth - 20},${targetY} ${bubbleX + bubbleWidth},${targetY + 20} ` +
+          `${bubbleX + bubbleWidth},${targetY + bubbleHeight - 20} ${bubbleX + bubbleWidth - 20},${targetY + bubbleHeight} ` +
+          `${bubbleX + 20},${targetY + bubbleHeight} ${bubbleX},${targetY + bubbleHeight - 20}" ` +
+          `fill="white" stroke="black" stroke-width="2" />`;
+        break;
+      case 'rectangular':
+        // 長方形
+        shapePath = `<rect x="${bubbleX}" y="${targetY}" width="${bubbleWidth}" height="${bubbleHeight}" ` +
+          `fill="white" stroke="black" stroke-width="2" />`;
+        break;
+      case 'rounded':
+      default:
+        // 丸み吹き出し（デフォルト）
+        shapePath = `<rect x="${bubbleX}" y="${targetY}" width="${bubbleWidth}" height="${bubbleHeight}" ` +
+          `rx="10" ry="10" fill="white" stroke="black" stroke-width="2" />` +
+          `<polygon points="${bubbleX + 30},${targetY + bubbleHeight} ${bubbleX + 20},${targetY + bubbleHeight + 15} ` +
+          `${bubbleX + 40},${targetY + bubbleHeight}" fill="white" stroke="black" stroke-width="2" />`;
+        break;
+    }
+
+    // テキストを複数行に分割（簡易版）
+    const words = bubble.text.split(' ');
+    const lines: string[] = [];
+    let currentLine = '';
+    const maxCharsPerLine = 30;
+
+    for (const word of words) {
+      if ((currentLine + word).length > maxCharsPerLine) {
+        if (currentLine) lines.push(currentLine.trim());
+        currentLine = word + ' ';
+      } else {
+        currentLine += word + ' ';
+      }
+    }
+    if (currentLine) lines.push(currentLine.trim());
+
+    const textElements = lines.slice(0, 2).map((line, i) =>
+      `<text x="${bubbleX + bubbleWidth / 2}" y="${targetY + 25 + i * 20}" ` +
+      `font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="black">${this.escapeXml(line)}</text>`
+    ).join('\n');
+
+    const svg = `<svg width="${panelPos.width + panelPos.x}" height="${panelPos.height + panelPos.y}" xmlns="http://www.w3.org/2000/svg">
+${shapePath}
+${textElements}
+</svg>`;
+
+    return Buffer.from(svg, 'utf-8');
+  }
+
+  /**
+   * XML特殊文字をエスケープ
+   */
+  private escapeXml(text: string): string {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
   }
 }
 
