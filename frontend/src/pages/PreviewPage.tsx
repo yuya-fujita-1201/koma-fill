@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import ExportOptions from '../components/ExportOptions';
 import PanelGrid from '../components/PanelGrid';
-import { deletePanel, getProject, regeneratePanel, reorderPanels } from '../services/apiClient';
+import { deletePanel, deleteProject, getProject, regeneratePanel, reorderPanels } from '../services/apiClient';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { MangaLayoutViewer } from '../components/MangaLayoutViewer';
 import { useExport } from '../hooks/useExport';
@@ -149,13 +149,32 @@ export default function PreviewPage() {
             status: {project.status} / total cost: ${project.totalCost.toFixed(3)}
           </p>
         </div>
-        <button
-          type="button"
-          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-          onClick={() => navigate('/')}
-        >
-          新規作成
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            onClick={() => navigate('/')}
+          >
+            新規作成
+          </button>
+          <button
+            type="button"
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            onClick={async () => {
+              if (!projectId) return;
+              if (!window.confirm('このプロジェクトを削除しますか？この操作は取り消せません。')) return;
+              try {
+                await deleteProject(projectId);
+                toast.success('プロジェクトを削除しました');
+                navigate('/');
+              } catch (err) {
+                toast.error(err instanceof Error ? err.message : 'プロジェクト削除に失敗しました');
+              }
+            }}
+          >
+            プロジェクト削除
+          </button>
+        </div>
       </section>
 
       <section>

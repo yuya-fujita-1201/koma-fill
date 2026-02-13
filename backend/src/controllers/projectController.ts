@@ -186,6 +186,29 @@ export async function listProjects(req: Request, res: Response, next: NextFuncti
   }
 }
 
+export async function deleteProject(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const { projectId } = req.params;
+    const project = await projectRepository.getProject(projectId);
+    if (!project) {
+      throw new NotFoundError('Project');
+    }
+
+    await projectRepository.deleteProject(projectId);
+
+    const projectDir = path.resolve(CONFIG.STORAGE_PATH, projectId);
+    try {
+      await fs.promises.rm(projectDir, { recursive: true, force: true });
+    } catch {
+      // ディレクトリが存在しない場合は無視
+    }
+
+    res.json({ message: 'Project deleted' });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function deletePanel(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const { projectId, panelIndex } = req.params;
