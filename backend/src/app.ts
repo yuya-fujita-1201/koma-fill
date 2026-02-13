@@ -38,9 +38,11 @@ app.use('/api/manga', mangaRoutes);
 // Production SPA serving
 // ============================================
 if (CONFIG.NODE_ENV === 'production') {
-  app.use(express.static(path.resolve(__dirname, '../../frontend/dist')));
-  app.get('*', (_req, res) => {
-    res.sendFile(path.resolve(__dirname, '../../frontend/dist/index.html'));
+  const frontendDist = path.resolve(__dirname, '../../frontend/dist');
+  app.use(express.static(frontendDist));
+  // SPA fallback: /api 以外のパスに限定
+  app.get(/^(?!\/api\/).*$/, (_req, res) => {
+    res.sendFile(path.join(frontendDist, 'index.html'));
   });
 }
 
