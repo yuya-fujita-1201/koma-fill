@@ -43,10 +43,10 @@ export const CONFIG = {
   STORAGE_PATH: process.env.STORAGE_PATH || './uploads',
   MAX_IMAGE_SIZE_MB: parseInt(process.env.MAX_IMAGE_SIZE_MB || '20', 10),
 
-  // DALL-E 3 Model Settings
-  DALLE_MODEL: 'dall-e-3' as const,
-  VISION_MODEL: 'gpt-4o' as const,
-  PROMPT_MODEL: 'gpt-4o' as const,
+  // DALL-E 3 Model Settings (環境変数でオーバーライド可能)
+  DALLE_MODEL: process.env.DALLE_MODEL || 'dall-e-3',
+  VISION_MODEL: process.env.VISION_MODEL || 'gpt-4o',
+  PROMPT_MODEL: process.env.PROMPT_MODEL || 'gpt-4o',
 
   // Image Defaults
   PANEL_SIZE: {
