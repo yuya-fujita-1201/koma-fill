@@ -3,16 +3,18 @@ import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import ExportOptions from '../components/ExportOptions';
 import PanelGrid from '../components/PanelGrid';
-import { getProject, regeneratePanel, reorderPanels } from '../services/apiClient';
+import { deletePanel, deleteProject, getProject, regeneratePanel, reorderPanels } from '../services/apiClient';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { MangaLayoutViewer } from '../components/MangaLayoutViewer';
 import { useExport } from '../hooks/useExport';
+import { useMangaStore } from '../store/mangaStore';
 import { MangaProject } from '../types';
 
 export default function PreviewPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
-  const [project, setProject] = useState<MangaProject | null>(null);
+  const [project, setProjectLocal] = useState<MangaProject | null>(null);
+  const storeSetProject = useMangaStore((s) => s.setProject);
   const [loading, setLoading] = useState(true);
   const [layoutPath, setLayoutPath] = useState<string | null>(null);
   const { composeLayout: composeLayoutAction, exportManga: exportMangaAction, exporting } = useExport();
@@ -25,7 +27,8 @@ export default function PreviewPage() {
     setLoading(true);
     try {
       const data = await getProject(projectId);
-      setProject(data);
+      setProjectLocal(data);
+      storeSetProject(data);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'プロジェクト取得に失敗しました');
     } finally {
@@ -65,8 +68,22 @@ export default function PreviewPage() {
     }
   };
 
-  const handleDelete = () => {
-    toast('パネル削除APIは未実装です', { icon: 'ℹ️' });
+  const handleDelete = async (panelIndex: number) => {
+    if (!projectId) {
+      return;
+    }
+
+    if (!window.confirm(`パネル ${panelIndex + 1} を削除しますか？`)) {
+      return;
+    }
+
+    try {
+      await deletePanel(projectId, panelIndex);
+      toast.success(`パネル ${panelIndex + 1} を削除しました`);
+      await loadProject();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'パネル削除に失敗しました');
+    }
   };
 
   const handleLayout = async () => {
@@ -135,13 +152,32 @@ export default function PreviewPage() {
             status: {project.status} / total cost: ${project.totalCost.toFixed(3)}
           </p>
         </div>
-        <button
-          type="button"
-          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-          onClick={() => navigate('/')}
-        >
-          新規作成
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            onClick={() => navigate('/')}
+          >
+            新規作成
+          </button>
+          <button
+            type="button"
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            onClick={async () => {
+              if (!projectId) return;
+              if (!window.confirm('このプロジェクトを削除しますか？この操作は取り消せません。')) return;
+              try {
+                await deleteProject(projectId);
+                toast.success('プロジェクトを削除しました');
+                navigate('/');
+              } catch (err) {
+                toast.error(err instanceof Error ? err.message : 'プロジェクト削除に失敗しました');
+              }
+            }}
+          >
+            プロジェクト削除
+          </button>
+        </div>
       </section>
 
       <section>

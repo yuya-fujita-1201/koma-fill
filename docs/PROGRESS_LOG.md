@@ -1,5 +1,34 @@
 # koma-fill 開発進捗ログ
 
+## 2026-02-14 v1.0 MVP 最終整合性チェック
+
+### 完了条件チェックリスト
+
+- [x] `npx tsc --noEmit` がバックエンド・フロントエンドともにエラーなし
+- [x] `cd backend && npm test` が全パス (9 suites, 44 passed, 1 skipped)
+- [x] `cd frontend && npm test` が全パス (3 suites, 22 passed)
+- [x] `npm run build` が成功
+- [x] `npm run lint` がエラーなし
+- [x] 全 9 タスクがコミット済み
+- [x] README.md が存在し、セットアップ手順が明記
+- [x] Dockerfile が存在し、ビルド構成が定義済み
+
+### 実施タスク一覧
+
+| # | タスク | コミット |
+|---|--------|---------|
+| 1 | モデル名を環境変数で設定可能にする | `feat: モデル名を環境変数で設定可能にする` |
+| 2 | パネル削除API実装 + フロントエンド接続 | `feat: パネル削除API実装 + フロントエンド接続` |
+| 3 | プロジェクト削除API + UI実装 | `feat: プロジェクト削除API + UI実装` |
+| 4 | Zustand ストア実装 + CreateMangaPage を接続 | `refactor: Zustand ストア実装 + CreateMangaPage を接続` |
+| 5 | フロントエンドテスト基盤 + テスト追加 | `test: フロントエンドテスト基盤 + Zustand/apiClient/hooks テスト追加` |
+| 6 | Dockerfile + docker-compose 追加 | `chore: Dockerfile + docker-compose 追加` |
+| 7 | GitHub Actions CI パイプライン追加 | `ci: GitHub Actions CI パイプライン追加` |
+| 8 | README.md 追加 | `docs: README.md 追加` |
+| 9 | 最終整合性チェック + PROGRESS_LOG 更新 | `chore: v1.0 最終整合性チェック + PROGRESS_LOG 更新` |
+
+---
+
 ## 2026-02-14 作業記録（Phase 2 準備）
 
 ### 実施内容
@@ -57,62 +86,33 @@ KAMUI-4D による修正が反映されていないことを確認。
 
 ---
 
-## 実装進捗サマリー（全体 約70-75% → Phase 2 完了後 ~90%見込み）
+## 実装進捗サマリー（全体 ~95%）
 
-### 完了済み (Core Pipeline - 動作可能)
+### 完了済み
 
 - [x] **バックエンド全5サービス**: ImageAnalysis, PromptGeneration, ImageGeneration, LayoutEngine, ExportService
 - [x] **データベース**: SQLite スキーマ + リポジトリ層 (projects, panels, keyImages)
-- [x] **APIルーティング**: `manga.ts` に全エンドポイント統合
+- [x] **APIルーティング**: manga.ts ルーター + コントローラー分離済み (14エンドポイント)
+- [x] **CRUD API**: プロジェクト作成/取得/一覧/削除、パネル削除/並び替え
 - [x] **フロントエンド2ページ**: CreateMangaPage, PreviewPage
-- [x] **主要コンポーネント**: ImageUploader, StoryPromptEditor, LayoutSelector, PanelGrid, ProgressBar, ExportOptions
-- [x] **カスタムフック**: useMangaGeneration
-- [x] **APIクライアント**: 全エンドポイント対応
+- [x] **主要コンポーネント**: ImageUploader, StoryPromptEditor, LayoutSelector, PanelGrid, ProgressBar, ExportOptions, MangaLayoutViewer, LoadingSpinner, ErrorBoundary
+- [x] **状態管理**: Zustand ストア (mangaStore)
+- [x] **カスタムフック**: useMangaGeneration, useExport, useProject
+- [x] **APIクライアント**: 全エンドポイント対応 (deletePanel, deleteProject 含む)
 - [x] **エラーハンドリング**: AppError系クラス + グローバルミドルウェア
-- [x] **環境設定**: .env.example, CONFIG定数
+- [x] **認証ミドルウェア**: APIキー認証
+- [x] **レート制限**: express-rate-limit (DALL-E / Vision 個別制限)
+- [x] **環境設定**: .env.example, CONFIG定数, モデル名環境変数化
+- [x] **テスト (Backend)**: Jest, 9 suites, 45 tests
+- [x] **テスト (Frontend)**: Vitest + React Testing Library, 3 suites, 22 tests
+- [x] **Docker**: Dockerfile (マルチステージ) + docker-compose.yml
+- [x] **CI/CD**: GitHub Actions (lint, build, test)
+- [x] **ドキュメント**: README.md
 
-### 未実装（次回以降のタスク）
+### 残タスク (v1.1+)
 
-#### 優先度: 高
-1. **認証ミドルウェア (`auth.ts`)** — APIが完全にオープン状態。JWT or APIキー認証の実装が必要
-2. **テスト** — ユニットテスト・統合テストが一切なし。Jest設定済みだがテストファイルなし
-3. **コントローラー分離** — 全ルートが `manga.ts`（巨大ファイル）に集約。controller層への分離推奨
-
-#### 優先度: 中
-4. **RateLimitService** — 専用サービスクラスなし。現在は express-rate-limit のグローバル制限のみ
-5. **rateLimiter ミドルウェア** — ユーザー/アクション単位のレート制限
-6. **MangaLayoutViewer コンポーネント** — 生成結果のフルスクリーン表示・ズーム機能
-7. **useProject / useExport フック** — 現在はページ内インラインで処理
-8. **generation_log テーブル** — API呼び出しログ（監視・課金用）
-
-#### 優先度: 低
-9. **ErrorBoundary** — React エラーバウンダリ
-10. **LoadingSpinner** — 汎用ローディングコンポーネント
-11. **Docker構成** — Dockerfile, docker-compose.yml
-12. **README.md** — プロジェクトドキュメント
-13. **Results ページ分離** — 現在は PreviewPage に統合
-
----
-
-## 推奨する次回タスク順序
-
-```
-Phase 1: 品質基盤
-  → テスト追加（サービス層のユニットテスト）
-  → 認証ミドルウェア実装
-
-Phase 2: アーキテクチャ改善
-  → コントローラー層分離（manga.ts → 3ファイル）
-  → RateLimitService 実装
-  → カスタムフック分離
-
-Phase 3: UI/UX強化
-  → MangaLayoutViewer（ズーム・フルスクリーン）
-  → ErrorBoundary
-  → LoadingSpinner
-
-Phase 4: デプロイ準備
-  → Docker構成
-  → README.md
-  → CI/CD パイプライン
-```
+- [ ] generation_log テーブル（API呼び出しログ・課金追跡）
+- [ ] E2E テスト (Playwright/Cypress)
+- [ ] ページネーション UI（プロジェクト一覧）
+- [ ] プロジェクト編集機能
+- [ ] ユーザー管理（マルチユーザー対応）

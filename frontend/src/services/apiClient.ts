@@ -118,6 +118,16 @@ export async function regeneratePanel(projectId: string, panelIndex: number, new
   return res.data;
 }
 
+export async function deletePanel(projectId: string, panelIndex: number) {
+  const res = await api.delete(`/manga/${projectId}/panels/${panelIndex}`);
+  return res.data;
+}
+
+export async function deleteProject(projectId: string) {
+  const res = await api.delete(`/manga/${projectId}`);
+  return res.data;
+}
+
 export async function reorderPanels(projectId: string, panelOrder: number[]) {
   const res = await api.put(`/manga/${projectId}/reorder`, { panelOrder });
   return res.data;

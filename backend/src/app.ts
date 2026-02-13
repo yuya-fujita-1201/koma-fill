@@ -35,6 +35,16 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/manga', mangaRoutes);
 
 // ============================================
+// Production SPA serving
+// ============================================
+if (CONFIG.NODE_ENV === 'production') {
+  app.use(express.static(path.resolve(__dirname, '../../frontend/dist')));
+  app.get('*', (_req, res) => {
+    res.sendFile(path.resolve(__dirname, '../../frontend/dist/index.html'));
+  });
+}
+
+// ============================================
 // Error handling
 // ============================================
 app.use(errorHandler);

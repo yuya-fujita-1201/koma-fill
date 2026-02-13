@@ -6,6 +6,8 @@ import {
 } from '../controllers/exportController';
 import {
   createProject,
+  deletePanel,
+  deleteProject,
   getProject,
   listProjects,
   reorderPanels,
@@ -31,6 +33,8 @@ router.use(authenticate);
 router.post('/create', createProject);
 router.post('/:projectId/upload', upload.array('images', 10), uploadKeyImages);
 router.put('/:projectId/reorder', reorderPanels);
+router.delete('/:projectId/panels/:panelIndex', deletePanel);
+router.delete('/:projectId', deleteProject);
 router.get('/:projectId', getProject);
 router.get('/', listProjects);
 
