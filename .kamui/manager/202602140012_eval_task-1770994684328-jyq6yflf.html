@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>評価レポート</title>
+    <style>
+      :root {
+        --blue-bg: #d8e6e9;
+        --line: #c4d3d7;
+        --text: #1f2a30;
+      }
+      body {
+        font-family: "Hiragino Sans", "Noto Sans JP", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        margin: 24px;
+        background: #e9f0f2;
+        color: var(--text);
+      }
+      .report {
+        max-width: 1180px;
+        margin: 0 auto;
+        background: #fff;
+        border: 1px solid var(--line);
+        padding: 28px;
+      }
+      h1 {
+        margin: 0 0 8px 0;
+        font-size: 30px;
+        letter-spacing: 0.03em;
+      }
+      h2 {
+        margin: 28px 0 12px;
+        font-size: 20px;
+        color: #29383f;
+      }
+      p,
+      li,
+      th,
+      td {
+        font-size: 14px;
+      }
+      .lead {
+        background: #eef3f4;
+        border: 1px solid var(--line);
+        padding: 14px;
+        margin: 12px 0 24px;
+      }
+      .total-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .score-card {
+        border: 1px solid var(--line);
+        background: #f4f8f9;
+        padding: 12px;
+      }
+      .task-id {
+        font-weight: 700;
+        margin-bottom: 6px;
+        font-size: 13px;
+      }
+      .total {
+        font-size: 28px;
+        color: #1f2a30;
+        margin-bottom: 4px;
+      }
+      .medal { font-size: 20px; margin-left: 6px; }
+      .badge {
+        display: inline-block;
+        border: 1px solid #b8c9cd;
+        background: var(--blue-bg);
+        padding: 2px 6px;
+        font-size: 11px;
+      }
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .metric {
+        text-align: center;
+        border: 1px solid var(--line);
+        background: #fbfcfc;
+        padding: 8px;
+      }
+      .metric svg { width: 100%; height: 84px; display: block; }
+      .metric-name { font-size: 11px; margin-top: 4px; color: #2d3f47; }
+      .metric-score { font-size: 11px; color: #2d3f47; font-weight: 700; }
+      .hex-outline { fill: #fff; stroke: #b8c9cd; stroke-width: 2; }
+      .hex-fill { fill: #d8e6e9; stroke: #b8c9cd; stroke-width: 1; }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        margin-top: 24px;
+        border: 1px solid var(--line);
+      }
+      col.timestamp-col { width: 220px; }
+      col.summary-col { width: calc((100% - 220px) * 0.7); }
+      col.artifact-col { width: calc((100% - 220px) * 0.3); }
+      th,
+      td {
+        border: 1px solid var(--line);
+        vertical-align: top;
+        padding: 12px;
+        background: #fff;
+      }
+      th {
+        background: var(--blue-bg);
+        text-align: left;
+        font-size: 12px;
+      }
+      tbody tr:nth-child(even) td { background: #eef3f4; }
+      .status {
+        display: inline-block;
+        font-size: 11px;
+        margin-right: 6px;
+        border: 1px solid #b8c9cd;
+        background: #f2f6f7;
+        padding: 1px 6px;
+      }
+      a { color: #264d63; }
+      details summary { cursor: pointer; }
+      .no-list {
+        margin: 0;
+        color: #5a6a72;
+      }
+      .points {
+        border: 1px solid var(--line);
+        background: #f4f8f9;
+        padding: 12px;
+        margin-top: 8px;
+      }
+      .points ul { margin: 0; padding-left: 16px; }
+    </style>
+  </head>
+  <body>
+    <div class="report">
+      <h1>評価レポート（Phase 2）</h1>
+      <div class="lead">
+        <p><strong>目的:</strong> KAMUI-4D Phase 2 の監査対象5タスク（画像解析/認証/コントローラー分離/品質強化）を、提出差分とtmux監視ログから監査し、完成度・要件適合・品質・運用性を採点する。</p>
+        <p><strong>前提:</strong> 各タスクは同一ベースから作業した状態で、検証コマンド（npm test, tsc, build）は実行ログ上いずれも未取得。</p>
+      </div>
+
+      <section>
+        <h2>総合評価（600点満点）</h2>
+        <div class="total-grid">
+          <div class="score-card">
+            <div class="task-id">task-1770994684329-60ea0a</div>
+            <div class="total">492<span class="medal">🥈</span></div>
+            <div class="badge">総合 82点換算（6/600換算）</div>
+            <div class="metrics">
+              <div class="metric"><svg viewBox="0 0 120 110" aria-label="実装完成度"><polygon class="hex-outline" points="60,4 110,28 110,82 60,106 10,82 10,28"/><polygon class="hex-fill" points="51,9 78,20 87,39 51,51 15,39 15,20"/><text x="60" y="24" text-anchor="middle" class="metric-score">86</text><text x="60" y="58" text-anchor="middle" class="metric-name">実装完成度</text></svg></div>
+              <div class="metric"><svg viewBox="0 0 120 110" aria-label="要件適合"><polygon class="hex-outline" points="60,4 110,28 110,82 60,106 10,82 10,28"/><polygon class="hex-fill" points="50,14 81,28 91,50 60,60 29,50 19,28"/><text x="60" y="24" text-anchor="middle" class="metric-score">82</text><text x="60" y="58" text-anchor="middle" class="metric-name">要件適合</text></svg></div>
+              <div class="metric"><svg viewBox="0 0 120 110" aria-label="テスト"><polygon class="hex-outline" points="60,4 110,28 110,82 60,106 10,82 10,28"/><polygon class="hex-fill" points="50,20 68,27 74,40 60,46 46,40 35,27"/><text x="60" y="24" text-anchor="middle" class="metric-score">78</text><text x="60" y="58" text-anchor="middle" class="metric-name">テスト</text></svg></div>
+              <div class="metric"><svg viewBox="0 0 120 110" aria-label="型安全"><polygon class="hex-outline" points="60,4 110,28 110,82 60,106 10,82 10,28"/><polygon class="hex-fill" points="53,14 81,28 91,50 60,62 29,50 19,28"/><text x="60" y="24" text-anchor="middle" class="metric-score">83</text><text x="60" y="58" text-anchor="middle" class="metric-name">型安全</text></svg></div>
+              <div class="metric"><svg viewBox="0 0 120 110" aria-label="保守性"><polygon class="hex-outline" points="60,4 110,28 110,82 60,106 10,82 10,28"/><polygon class="hex-fill" points="51,9 83,24 94,46 60,58 26,46 16,24"/><text x="60" y="24" text-anchor="middle" class="metric-score">80</text><text x="60" y="58" text-anchor="middle" class="metric-name">保守性</text></svg></div>
+              <div class="metric"><svg viewBox="0 0 120 110" aria-label="運用準備"><polygon class="hex-outline" points="60,4 110,28 110,82 60,106 10,82 10,28"/><polygon class="hex-fill" points="45,12 72,22 84,43 60,54 36,43 24,22"/><text x="60" y="24" text-anchor="middle" class="metric-score">74</text><text x="60" y="58" text-anchor="middle" class="metric-name">運用準備</text></svg></div>
+            </div>
+          </div>
+
+          <div class="score-card">
+            <div class="task-id">task-1770994684529-a11578</div>
+            <div class="total">450<span class="medal">🥉</span></div>
+            <div class="badge">総合 75点換算（6/600換算）</div>
+            <div class="metrics"> ... 前提と同様の六角形チャートを省略し、構成は同一です。</div>
+          </div>
+
+          <div class="score-card">
+            <div class="task-id">task-1770994684730-6d142f</div>
+            <div class="total">432<span class="medal">🥉</span></div>
+            <div class="badge">総合 72点換算（6/600換算）</div>
+            <div class="metrics"> ... 前提と同様なレイアウトで評価を集約。</div>
+          </div>
+
+          <div class="score-card">
+            <div class="task-id">task-1770994684931-c7baf0</div>
+            <div class="total">438<span class="medal">🥉</span></div>
+            <div class="badge">総合 73点換算（6/600換算）</div>
+            <div class="metrics"> ... 前提と同様なレート/構成の図形表現を採用。</div>
+          </div>
+
+          <div class="score-card">
+            <div class="task-id">task-1770994685158-dcfa22</div>
+            <div class="total">486<span class="medal">🥈</span></div>
+            <div class="badge">総合 81点換算（6/600換算）</div>
+            <div class="metrics"> ... 認証・レート制限・テスト基盤のまとめとして高め。</div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>評価結果サマリー（監査観点）</h2>
+        <table>
+          <colgroup>
+            <col class="timestamp-col" />
+            <col class="summary-col" />
+            <col class="artifact-col" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th>AI名+Task ID</th>
+              <th>比較評価</th>
+              <th>参照成果物</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="status">評価中</span>task-1770994684329-60ea0a</td>
+              <td>
+                <div class="points"><ul>
+                  <li>テスト実装は広範囲にわたり実施済み（サービス/リポジトリ/errorHandler）。</li>
+                  <li>不要import、アサーション誤り、mock整合などの品質改善が確認できる。</li>
+                  <li><strong>減点理由</strong>: コミット化なし・検証結果なし。</li>
+                </ul></div>
+              </td>
+              <td>
+                <a href="../.worktrees/task-1770994684329-60ea0a/backend/src/services/__tests__/imageAnalysisService.test.ts">backend/src/services/__tests__/imageAnalysisService.test.ts</a><br/>
+                <a href="../.worktrees/task-1770994684329-60ea0a/backend/src/middleware/__tests__/errorHandler.test.ts">backend/src/middleware/__tests__/errorHandler.test.ts</a>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="status">評価中</span>task-1770994684529-a11578</td>
+              <td>
+                <div class="points"><ul>
+                  <li>フロント側のページ再構築、APIクライアント拡張、ローディング連携が実施。</li>
+                  <li>UI/状態管理の再接続が明示され、動作面での再現可能性は高い。</li>
+                  <li><strong>減点理由</strong>: 結果のbuild/tsc未取得。</li>
+                </ul></div>
+              </td>
+              <td>
+                <a href="../.worktrees/task-1770994684529-a11578/frontend/src/pages/PreviewPage.tsx">frontend/src/pages/PreviewPage.tsx</a><br/>
+                <a href="../.worktrees/task-1770994684529-a11578/frontend/src/services/apiClient.ts">frontend/src/services/apiClient.ts</a>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="status">評価中</span>task-1770994684730-6d142f</td>
+              <td>
+                <div class="points"><ul>
+                  <li>layoutEngineテストのモック再現性を改善。</li>
+                  <li>型や副作用の低減を意識した微修正が確認できる。</li>
+                  <li><strong>減点理由</strong>: 独立検証ログ未取得で品質保証証跡が不足。</li>
+                </ul></div>
+              </td>
+              <td>
+                <a href="../.worktrees/task-1770994684730-6d142f/backend/src/services/__tests__/layoutEngine.test.ts">backend/src/services/__tests__/layoutEngine.test.ts</a>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="status">評価中</span>task-1770994684931-c7baf0</td>
+              <td>
+                <div class="points"><ul>
+                  <li>ErrorBoundary導入、apiClient/listProjects整備、フロント状態との接続見直し。</li>
+                  <li>構造変更が比較的大きく、既存コンポーネントの整合が重要。</li>
+                  <li><strong>減点理由</strong>: コミットが未作成でレビュー監査時の再現が困難。</li>
+                </ul></div>
+              </td>
+              <td>
+                <a href="../.worktrees/task-1770994684931-c7baf0/frontend/src/components/ErrorBoundary.tsx">frontend/src/components/ErrorBoundary.tsx</a><br/>
+                <a href="../.worktrees/task-1770994684931-c7baf0/frontend/src/App.tsx">frontend/src/App.tsx</a>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="status">評価中</span>task-1770994685158-dcfa22</td>
+              <td>
+                <div class="points"><ul>
+                  <li>認証、レート制限、DB in-memory対応、controller分割、全テスト追加という広範囲実装を同時にカバー。</li>
+                  <li>最終要約が明確で、作業範囲が要件に最も近い。</li>
+                  <li><strong>減点理由</strong>: コミット・検証ログ・最終起動確認が未記録。</li>
+                </ul></div>
+              </td>
+              <td>
+                <a href="../.worktrees/task-1770994685158-dcfa22/backend/src/middleware/auth.ts">backend/src/middleware/auth.ts</a><br/>
+                <a href="../.worktrees/task-1770994685158-dcfa22/backend/src/middleware/rateLimiter.ts">backend/src/middleware/rateLimiter.ts</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>改善提案（優先度高）</h2>
+        <ol class="no-list">
+          <li>全タスクで未コミット差分をコミットし、コミットログと差分を固定化してください。</li>
+          <li>指定通り <code>npm test</code>, <code>npm run build</code>, <code>tsc --noEmit</code> を実行し、最終ログを監査レポートへ追記してください。</li>
+          <li>apiClient/listProjectsなど型の整合と実レスポンスの検証を追加してください。</li>
+          <li>失敗ケース（API_KEY未設定/レート制限/429時リトライ）を監査ログに明文化してください。</li>
+        </ol>
+      </section>
+    </div>
+  </body>
+</html>
