@@ -3,6 +3,7 @@ process.env.OPENAI_API_KEY = 'test-openai-key';
 import { initDatabase } from '../../database/connection';
 import { keyImageRepository } from '../keyImageRepository';
 import { projectRepository } from '../projectRepository';
+import { DEFAULT_LAYOUT_CONFIG, DEFAULT_GENERATION_SETTINGS } from '../../models/types';
 
 describe('KeyImageRepository', () => {
   let projectId: string;
@@ -12,6 +13,8 @@ describe('KeyImageRepository', () => {
     const project = await projectRepository.createProject({
       projectName: 'KeyImage Test',
       storyPrompt: 'Test',
+      layoutConfig: { ...DEFAULT_LAYOUT_CONFIG },
+      generationSettings: { ...DEFAULT_GENERATION_SETTINGS },
     });
     projectId = project.id;
   });

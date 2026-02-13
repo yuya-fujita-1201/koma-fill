@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import fs from 'fs';
-import { LayoutConfig } from '../models/types';
+import { LayoutConfig, SpeechBubble } from '../models/types';
 import { NotFoundError, ValidationError } from '../middleware/errorHandler';
 import { projectRepository } from '../repositories/projectRepository';
 import { LayoutEngine } from '../services/layoutEngine';
@@ -33,7 +33,7 @@ export async function composeLayout(req: Request, res: Response, next: NextFunct
     let layout = await layoutEngine.composePanels(panelPaths, project.layoutConfig as LayoutConfig);
 
     if (speechBubbles && Array.isArray(speechBubbles) && speechBubbles.length > 0) {
-      layout = await layoutEngine.addSpeechBubbles(layout, speechBubbles as never);
+      layout = await layoutEngine.addSpeechBubbles(layout, speechBubbles as SpeechBubble[]);
     }
 
     const layoutPath = path.join(CONFIG.STORAGE_PATH, projectId, 'layout.png');

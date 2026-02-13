@@ -6,6 +6,7 @@ import {
   AnalyzeImagesRequest,
   GenerateImagesRequest,
   GeneratePromptsRequest,
+  KeyImage,
   PanelPrompt,
   RegeneratePanelRequest,
 } from '../models/types';
@@ -94,7 +95,7 @@ export async function generatePrompts(req: Request, res: Response, next: NextFun
     const analyses = payload.characterConsistency
       ? project.keyImages
         .map((image) => image.analysis)
-        .filter((analysis): analysis is NonNullable<typeof image.analysis> => analysis !== undefined)
+        .filter((analysis): analysis is NonNullable<KeyImage['analysis']> => analysis !== undefined)
       : [];
 
     const prompts = await promptGenerationService.generatePanelPrompts(
@@ -173,7 +174,7 @@ export async function generateImages(req: Request, res: Response, next: NextFunc
       payload.batchMode,
       project.generationSettings,
       (progressEvent) => {
-        res.write(`data: ${JSON.stringify(progressEvent)}\\n\\n`);
+        res.write(`data: ${JSON.stringify(progressEvent)}\n\n`);
       }
     );
 
@@ -221,7 +222,7 @@ export async function generateImages(req: Request, res: Response, next: NextFunc
         percentage: 100,
         message: 'Image generation complete',
         totalCost,
-      })}\\n\\n`
+      })}\n\n`
     );
     res.end();
   } catch (err) {
@@ -235,7 +236,7 @@ export async function generateImages(req: Request, res: Response, next: NextFunc
           percentage: 0,
           message: err instanceof Error ? err.message : 'Image generation failed',
           error: err instanceof Error ? err.message : 'Unknown error',
-        })}\\n\\n`
+        })}\n\n`
       );
       res.end();
       return;

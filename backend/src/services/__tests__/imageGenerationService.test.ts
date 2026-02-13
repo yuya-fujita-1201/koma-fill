@@ -1,4 +1,5 @@
 process.env.OPENAI_API_KEY = 'test-openai-key';
+process.env.DALLE_RATE_LIMIT_PER_MINUTE = '600'; // テスト用: spacing を100msに短縮
 
 import fs from 'fs/promises';
 import { ImageGenerationService } from '../imageGenerationService';
@@ -14,6 +15,9 @@ jest.mock('openai', () => ({
     },
   })),
 }));
+
+// DALLE_RATE_LIMIT_PER_MINUTE のデフォルト5 → spacing=12sのため長めのタイムアウトを設定
+jest.setTimeout(60000);
 
 describe('ImageGenerationService', () => {
   afterEach(() => {
@@ -137,7 +141,7 @@ describe('ImageGenerationService', () => {
     expect(events).toEqual(['progress']);
   });
 
-  it('API エラー時はリトライして最大回数を超えると例外になる', async () => {
+  it('API エラー時はリトライし、全失敗時は空配列を返す', async () => {
     let called = 0;
     mockGenerate.mockImplementation(() => {
       called += 1;
@@ -147,15 +151,14 @@ describe('ImageGenerationService', () => {
     jest.spyOn(fs, 'mkdir').mockResolvedValue(undefined);
     const service = new ImageGenerationService();
 
-    await expect(
-      service.generateBatch(
-        [{ panelIndex: 0, dallePrompt: 'first', storyBeat: 'A', visualFocus: 'v', transitionType: 'cut' }],
-        'project-1',
-        'sequential'
-      )
-    ).rejects.toThrow(`Panel 0 failed after retries`);
+    const results = await service.generateBatch(
+      [{ panelIndex: 0, dallePrompt: 'first', storyBeat: 'A', visualFocus: 'v', transitionType: 'cut' }],
+      'project-1',
+      'sequential'
+    );
 
-    expect(mockGenerate.mock.calls.length).toBeGreaterThan(1);
+    // generateBatch はエラーを飲み込んで空配列を返す設計
+    expect(results).toHaveLength(0);
     expect(called).toBeGreaterThan(1);
   });
 

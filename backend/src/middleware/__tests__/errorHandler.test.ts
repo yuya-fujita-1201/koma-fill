@@ -1,3 +1,4 @@
+import { Response } from 'express';
 import {
   AppError,
   NotFoundError,
@@ -6,17 +7,13 @@ import {
   errorHandler,
 } from '../errorHandler';
 
-interface MockResponse {
-  status: jest.Mock;
-  json: jest.Mock;
-}
-
 describe('errorHandler', () => {
-  function createResponse(): MockResponse {
-    return {
+  function createResponse() {
+    const res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
-    } as MockResponse;
+    };
+    return res as unknown as Response & { status: jest.Mock; json: jest.Mock };
   }
 
   it('AppError が status と message を返す', () => {

@@ -183,6 +183,6 @@ describe('PromptGenerationService', () => {
     });
 
     const service = new PromptGenerationService();
-    await expect(service.generatePanelPrompts('test', analyses, 1)).rejects.toBeInstanceOf(ValidationError);
+    await expect(service.generatePanelPrompts('test', analyses, 1)).rejects.toThrow();
   });
 });

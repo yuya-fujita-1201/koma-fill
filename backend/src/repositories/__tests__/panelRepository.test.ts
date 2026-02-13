@@ -3,16 +3,18 @@ process.env.OPENAI_API_KEY = 'test-openai-key';
 import { initDatabase } from '../../database/connection';
 import { panelRepository } from '../panelRepository';
 import { projectRepository } from '../projectRepository';
-import { PanelStatus } from '../../models/types';
+import { PanelStatus, DEFAULT_LAYOUT_CONFIG, DEFAULT_GENERATION_SETTINGS } from '../../models/types';
 
 describe('PanelRepository', () => {
   let projectId: string;
 
   beforeEach(async () => {
-    const db = await initDatabase(':memory:');
+    await initDatabase(':memory:');
     const project = await projectRepository.createProject({
       projectName: 'Panel Test',
       storyPrompt: 'Test',
+      layoutConfig: { ...DEFAULT_LAYOUT_CONFIG },
+      generationSettings: { ...DEFAULT_GENERATION_SETTINGS },
     });
     projectId = project.id;
   });

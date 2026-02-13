@@ -156,7 +156,6 @@ export async function exportManga(
     projectId: string;
     format: 'png' | 'jpg' | 'pdf';
     downloadUrl: string;
-    filePath: string;
     fileSize: number;
   };
 }
