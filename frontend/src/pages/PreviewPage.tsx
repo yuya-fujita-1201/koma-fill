@@ -7,12 +7,14 @@ import { deletePanel, deleteProject, getProject, regeneratePanel, reorderPanels 
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { MangaLayoutViewer } from '../components/MangaLayoutViewer';
 import { useExport } from '../hooks/useExport';
+import { useMangaStore } from '../store/mangaStore';
 import { MangaProject } from '../types';
 
 export default function PreviewPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
-  const [project, setProject] = useState<MangaProject | null>(null);
+  const [project, setProjectLocal] = useState<MangaProject | null>(null);
+  const storeSetProject = useMangaStore((s) => s.setProject);
   const [loading, setLoading] = useState(true);
   const [layoutPath, setLayoutPath] = useState<string | null>(null);
   const { composeLayout: composeLayoutAction, exportManga: exportMangaAction, exporting } = useExport();
@@ -25,7 +27,8 @@ export default function PreviewPage() {
     setLoading(true);
     try {
       const data = await getProject(projectId);
-      setProject(data);
+      setProjectLocal(data);
+      storeSetProject(data);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'プロジェクト取得に失敗しました');
     } finally {

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import {
   analyzeImages,
   generateImages,
@@ -9,55 +8,55 @@ import {
   uploadImages,
 } from '../services/apiClient';
 import {
-  DEFAULT_GENERATION_SETTINGS,
-  DEFAULT_LAYOUT_CONFIG,
-  GenerationProgress,
-  GenerationSettings,
   LayoutConfig,
-  MangaProject,
+  GenerationSettings,
   UploadedImage,
 } from '../types';
 import { useProject } from './useProject';
+import { useMangaStore } from '../store/mangaStore';
 
 export function useMangaGeneration() {
-  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
-  const [storyPrompt, setStoryPrompt] = useState('');
-  const [layoutConfig, setLayoutConfig] = useState<LayoutConfig>(DEFAULT_LAYOUT_CONFIG);
-  const [generationSettings, setGenerationSettings] = useState<GenerationSettings>(
-    DEFAULT_GENERATION_SETTINGS
-  );
-  const [project, setProject] = useState<MangaProject | null>(null);
-  const [progress, setProgress] = useState<GenerationProgress>({
-    stage: 'idle',
-    currentStep: 0,
-    totalSteps: 0,
-    percentage: 0,
-    message: '',
-  });
-  const [error, setError] = useState<string | null>(null);
+  const {
+    uploadedImages,
+    storyPrompt,
+    layoutConfig,
+    generationSettings,
+    progress,
+    error,
+    setStoryPrompt,
+    addUploadedImage,
+    removeUploadedImage,
+    updateLayoutConfig,
+    updateGenerationSettings: updateGenSettings,
+    setProgress,
+    setError,
+    setProject,
+  } = useMangaStore();
 
   const isGenerating = progress.stage !== 'idle';
   const { createProject: createProjectAction } = useProject();
 
   const addImage = (image: UploadedImage) => {
-    setUploadedImages((prev) => {
-      if (prev.length >= 2) {
-        return prev;
-      }
-      return [...prev, image];
-    });
+    if (uploadedImages.length >= 2) {
+      return;
+    }
+    addUploadedImage(image);
   };
 
   const removeImage = (index: number) => {
-    setUploadedImages((prev) => prev.filter((_, i) => i !== index));
+    removeUploadedImage(index);
+  };
+
+  const setUploadedImages = (images: UploadedImage[]) => {
+    useMangaStore.setState({ uploadedImages: images });
   };
 
   const updateLayout = (config: Partial<LayoutConfig>) => {
-    setLayoutConfig((prev) => ({ ...prev, ...config }));
+    updateLayoutConfig(config);
   };
 
   const updateGenerationSettings = (settings: Partial<GenerationSettings>) => {
-    setGenerationSettings((prev) => ({ ...prev, ...settings }));
+    updateGenSettings(settings);
   };
 
   const resetProgress = () => {
@@ -74,13 +73,14 @@ export function useMangaGeneration() {
     projectName: string,
     existingProjectId?: string
   ): Promise<string> => {
+    const currentState = useMangaStore.getState();
     if (!projectName.trim()) {
       throw new Error('プロジェクト名を入力してください');
     }
-    if (!storyPrompt.trim()) {
+    if (!currentState.storyPrompt.trim()) {
       throw new Error('ストーリーを入力してください');
     }
-    if (uploadedImages.length < 1 || uploadedImages.length > 2) {
+    if (currentState.uploadedImages.length < 1 || currentState.uploadedImages.length > 2) {
       throw new Error('キー画像は1〜2枚必要です');
     }
 
@@ -99,9 +99,9 @@ export function useMangaGeneration() {
       if (!createdProjectId) {
         const created = await createProjectAction({
           projectName,
-          storyPrompt,
-          layoutConfig,
-          generationSettings,
+          storyPrompt: currentState.storyPrompt,
+          layoutConfig: currentState.layoutConfig,
+          generationSettings: currentState.generationSettings,
         });
         createdProjectId = created.id;
       }
@@ -117,8 +117,8 @@ export function useMangaGeneration() {
 
       await uploadImages(
         createdProjectId,
-        uploadedImages.map((img) => img.file),
-        uploadedImages.map((img) => String(img.position))
+        currentState.uploadedImages.map((img) => img.file),
+        currentState.uploadedImages.map((img) => String(img.position))
       );
 
       setProgress({
@@ -137,7 +137,7 @@ export function useMangaGeneration() {
         percentage: 55,
         message: 'パネルプロンプトを生成中...',
       });
-      await generatePrompts(createdProjectId, storyPrompt, layoutConfig.totalPanels);
+      await generatePrompts(createdProjectId, currentState.storyPrompt, currentState.layoutConfig.totalPanels);
 
       setProgress({
         stage: 'generating_images',
@@ -199,7 +199,7 @@ export function useMangaGeneration() {
     storyPrompt,
     layoutConfig,
     generationSettings,
-    project,
+    project: useMangaStore.getState().project,
     progress,
     error,
     isGenerating,
