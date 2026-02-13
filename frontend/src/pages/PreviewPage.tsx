@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import ExportOptions from '../components/ExportOptions';
 import PanelGrid from '../components/PanelGrid';
-import { getProject, regeneratePanel, reorderPanels } from '../services/apiClient';
+import { deletePanel, getProject, regeneratePanel, reorderPanels } from '../services/apiClient';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { MangaLayoutViewer } from '../components/MangaLayoutViewer';
 import { useExport } from '../hooks/useExport';
@@ -65,8 +65,22 @@ export default function PreviewPage() {
     }
   };
 
-  const handleDelete = () => {
-    toast('パネル削除APIは未実装です', { icon: 'ℹ️' });
+  const handleDelete = async (panelIndex: number) => {
+    if (!projectId) {
+      return;
+    }
+
+    if (!window.confirm(`パネル ${panelIndex + 1} を削除しますか？`)) {
+      return;
+    }
+
+    try {
+      await deletePanel(projectId, panelIndex);
+      toast.success(`パネル ${panelIndex + 1} を削除しました`);
+      await loadProject();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'パネル削除に失敗しました');
+    }
   };
 
   const handleLayout = async () => {

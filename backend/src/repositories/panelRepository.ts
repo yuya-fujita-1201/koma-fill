@@ -117,6 +117,11 @@ export class PanelRepository {
     const db = getDatabase();
     db.prepare('UPDATE panels SET status = ? WHERE id = ?').run(status, panelId);
   }
+
+  async deletePanel(panelId: string): Promise<void> {
+    const db = getDatabase();
+    db.prepare('DELETE FROM panels WHERE id = ?').run(panelId);
+  }
 }
 
 export const panelRepository = new PanelRepository();

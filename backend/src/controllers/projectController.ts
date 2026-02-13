@@ -186,6 +186,44 @@ export async function listProjects(req: Request, res: Response, next: NextFuncti
   }
 }
 
+export async function deletePanel(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const { projectId, panelIndex } = req.params;
+    const project = await projectRepository.getProject(projectId);
+    if (!project) {
+      throw new NotFoundError('Project');
+    }
+
+    const idx = parseInt(panelIndex, 10);
+    const panels = await panelRepository.getPanelsByProject(projectId);
+    const target = panels.find((p) => p.panelIndex === idx);
+    if (!target) {
+      throw new NotFoundError('Panel');
+    }
+
+    if (target.imageFilePath) {
+      try {
+        await fs.promises.unlink(target.imageFilePath);
+      } catch {
+        // ファイルが存在しない場合は無視
+      }
+    }
+
+    await panelRepository.deletePanel(target.id);
+
+    const remaining = panels.filter((p) => p.id !== target.id).sort((a, b) => a.panelIndex - b.panelIndex);
+    for (let i = 0; i < remaining.length; i++) {
+      if (remaining[i].panelIndex !== i) {
+        await panelRepository.updatePanel(remaining[i].id, { panelIndex: i });
+      }
+    }
+
+    res.json({ message: 'Panel deleted', remainingPanels: remaining.length });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function reorderPanels(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const { projectId } = req.params;
