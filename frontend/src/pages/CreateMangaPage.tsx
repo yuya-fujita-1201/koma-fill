@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import ImageUploader from '../components/ImageUploader';
 import LayoutSelector from '../components/LayoutSelector';
 import ProgressBar from '../components/ProgressBar';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 import StoryPromptEditor from '../components/StoryPromptEditor';
 import { useMangaGeneration } from '../hooks/useMangaGeneration';
 
@@ -25,6 +26,8 @@ export default function CreateMangaPage() {
     updateGenerationSettings,
     startGeneration,
   } = useMangaGeneration();
+  const pageLoading = isGenerating;
+  const pageError = error;
 
   const canSubmit = Boolean(projectName.trim() && storyPrompt.trim() && uploadedImages.length > 0);
 
@@ -72,15 +75,16 @@ export default function CreateMangaPage() {
         <LayoutSelector config={layoutConfig} onChange={updateLayout} />
       </section>
 
-      {isGenerating && (
+      {pageLoading && (
         <section className="bg-white p-6 rounded-xl border">
           <ProgressBar progress={progress} />
+          <LoadingSpinner size="sm" message="処理中..." />
         </section>
       )}
 
-      {error && (
+      {pageError && (
         <section className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm">
-          {error}
+          {pageError}
         </section>
       )}
 
@@ -90,10 +94,10 @@ export default function CreateMangaPage() {
           className="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold
                      hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed
                      transition-colors"
-          disabled={!canSubmit || isGenerating}
+          disabled={!canSubmit || pageLoading}
           onClick={handleGenerate}
         >
-          {isGenerating ? '生成中...' : '漫画を生成する'}
+          {pageLoading ? '生成中...' : '漫画を生成する'}
         </button>
       </section>
     </div>

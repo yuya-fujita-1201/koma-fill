@@ -13,6 +13,7 @@ import sharp from 'sharp';
 import PDFDocument from 'pdfkit';
 import fs from 'fs/promises';
 import path from 'path';
+import { ValidationError } from '../middleware/errorHandler';
 
 export interface ExportOptions {
   format: ExportFormat;
@@ -151,7 +152,8 @@ export class ExportService {
       case 'png': return this.exportPNG(layout, options);
       case 'jpg': return this.exportJPG(layout, options);
       case 'pdf': return this.exportPDF(layout, options);
-      default: throw new Error(`Unsupported format: ${options.format}`);
+      default:
+        throw new ValidationError(`Unsupported format: ${options.format}`);
     }
   }
 

@@ -89,6 +89,10 @@ export class ImageAnalysisService {
         throw err;
       }
 
+      if (err instanceof SyntaxError) {
+        throw new ValidationError('Invalid JSON response from Vision API');
+      }
+
       const message = err instanceof Error ? err.message : 'Unknown Vision API error';
       throw new OpenAIError(message);
     }

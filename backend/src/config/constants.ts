@@ -27,6 +27,11 @@ export const CONFIG = {
   OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
   OPENAI_ORG_ID: process.env.OPENAI_ORG_ID,
 
+  // Authentication
+  API_KEYS: process.env.API_KEYS
+    ? process.env.API_KEYS.split(',').map((k) => k.trim()).filter(Boolean)
+    : ([] as string[]),
+
   // Rate Limits
   DALLE_RATE_LIMIT_PER_MINUTE: parseInt(process.env.DALLE_RATE_LIMIT_PER_MINUTE || '5', 10),
   VISION_RATE_LIMIT_PER_MINUTE: parseInt(process.env.VISION_RATE_LIMIT_PER_MINUTE || '30', 10),

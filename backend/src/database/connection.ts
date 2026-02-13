@@ -18,19 +18,38 @@ export function getDatabase(): Database.Database {
   return dbInstance;
 }
 
-export async function initDatabase(): Promise<Database.Database> {
+export async function initDatabase(dbPath?: string): Promise<Database.Database> {
+  if (dbPath) {
+    if (dbInstance) {
+      dbInstance.close();
+      dbInstance = null;
+    }
+
+    const resolvedPath = dbPath === ':memory:' ? ':memory:' : path.resolve(dbPath);
+    if (resolvedPath !== ':memory:') {
+      ensureDirectoryExists(resolvedPath);
+    }
+
+    const db = new Database(resolvedPath);
+    db.pragma('foreign_keys = ON');
+    createSchema(db);
+    fs.mkdirSync(path.resolve(CONFIG.STORAGE_PATH), { recursive: true });
+    dbInstance = db;
+    return db;
+  }
+
   if (dbInstance) {
     return dbInstance;
   }
 
-  const dbPath = path.resolve(CONFIG.DATABASE_PATH);
-  ensureDirectoryExists(dbPath);
+  const dbPathResolved = path.resolve(CONFIG.DATABASE_PATH);
+  ensureDirectoryExists(dbPathResolved);
   fs.mkdirSync(path.resolve(CONFIG.STORAGE_PATH), { recursive: true });
 
-  const db = new Database(dbPath);
+  const db = new Database(dbPathResolved);
   db.pragma('foreign_keys = ON');
   createSchema(db);
-
   dbInstance = db;
+
   return db;
 }

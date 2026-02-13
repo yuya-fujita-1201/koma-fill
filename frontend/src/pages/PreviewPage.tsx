@@ -3,13 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import ExportOptions from '../components/ExportOptions';
 import PanelGrid from '../components/PanelGrid';
-import {
-  exportManga,
-  generateLayout,
-  getProject,
-  regeneratePanel,
-  reorderPanels,
-} from '../services/apiClient';
+import { getProject, regeneratePanel, reorderPanels } from '../services/apiClient';
+import { LoadingSpinner } from '../components/LoadingSpinner';
+import { MangaLayoutViewer } from '../components/MangaLayoutViewer';
+import { useExport } from '../hooks/useExport';
 import { MangaProject } from '../types';
 
 export default function PreviewPage() {
@@ -17,8 +14,8 @@ export default function PreviewPage() {
   const navigate = useNavigate();
   const [project, setProject] = useState<MangaProject | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isExporting, setIsExporting] = useState(false);
   const [layoutPath, setLayoutPath] = useState<string | null>(null);
+  const { composeLayout: composeLayoutAction, exportManga: exportMangaAction, exporting } = useExport();
 
   const loadProject = useCallback(async () => {
     if (!projectId) {
@@ -78,7 +75,7 @@ export default function PreviewPage() {
     }
 
     try {
-      const result = await generateLayout(projectId);
+      const result = await composeLayoutAction(projectId);
       setLayoutPath(`${result.layoutPath}?t=${Date.now()}`);
       toast.success('レイアウトを更新しました');
       await loadProject();
@@ -96,16 +93,17 @@ export default function PreviewPage() {
       return;
     }
 
-    setIsExporting(true);
     try {
-      const result = await exportManga(projectId, options);
+      const result = await exportMangaAction(projectId, {
+        format: options.format,
+        compression: options.compression,
+        resolution: options.resolution,
+      });
       window.open(result.downloadUrl, '_blank', 'noopener,noreferrer');
       toast.success('エクスポートが完了しました');
       await loadProject();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'エクスポートに失敗しました');
-    } finally {
-      setIsExporting(false);
     }
   };
 
@@ -189,15 +187,23 @@ export default function PreviewPage() {
       </section>
 
       {layoutPath && (
-        <section className="space-y-2">
-          <h3 className="text-lg font-semibold">レイアウトプレビュー</h3>
-          <img src={layoutPath} alt="layout preview" className="max-w-full border rounded-lg bg-white" />
+      <section className="space-y-2">
+        <h3 className="text-lg font-semibold">レイアウトプレビュー</h3>
+        <MangaLayoutViewer
+          imageUrl={layoutPath}
+          dimensions={
+            project
+              ? { width: project.layoutConfig.pageWidth, height: project.layoutConfig.pageHeight }
+              : undefined
+          }
+        />
+        {exporting && <LoadingSpinner size="sm" message="処理中..." />}
         </section>
       )}
 
       <section>
         <h3 className="text-lg font-semibold mb-4">エクスポート</h3>
-        <ExportOptions onExport={handleExport} isExporting={isExporting} />
+        <ExportOptions onExport={handleExport} isExporting={exporting} />
       </section>
     </div>
   );
