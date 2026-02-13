@@ -34,6 +34,20 @@ export async function getProject(projectId: string) {
   return res.data;
 }
 
+export async function listProjects(limit?: number, offset?: number) {
+  const params = new URLSearchParams();
+  if (limit !== undefined) {
+    params.set('limit', String(limit));
+  }
+  if (offset !== undefined) {
+    params.set('offset', String(offset));
+  }
+  const query = params.toString();
+  const endpoint = query ? `/manga?${query}` : '/manga';
+  const res = await api.get(endpoint);
+  return res.data;
+}
+
 export async function uploadImages(projectId: string, files: File[], positions: string[]) {
   const formData = new FormData();
   files.forEach((file, i) => {
@@ -109,20 +123,34 @@ export async function reorderPanels(projectId: string, panelOrder: number[]) {
   return res.data;
 }
 
-export async function generateLayout(projectId: string, speechBubbles?: object[]) {
+export async function composeLayout(projectId: string, speechBubbles?: object[]) {
   const res = await api.post(`/manga/${projectId}/layout`, { speechBubbles });
   return res.data;
 }
 
+export async function generateLayout(projectId: string, speechBubbles?: object[]) {
+  return composeLayout(projectId, speechBubbles);
+}
+
 export async function exportManga(
   projectId: string,
-  options: {
+  options?: {
     format: 'png' | 'jpg' | 'pdf';
     compression: 'low' | 'medium' | 'high';
     resolution: 'web' | 'print';
   }
 ) {
-  const res = await api.post(`/manga/${projectId}/export`, options);
+  const payload = {
+    format: options?.format ?? 'png',
+    compression: options?.compression ?? 'medium',
+    resolution: options?.resolution ?? 'web',
+  } as {
+    format: 'png' | 'jpg' | 'pdf';
+    compression: 'low' | 'medium' | 'high';
+    resolution: 'web' | 'print';
+  };
+
+  const res = await api.post(`/manga/${projectId}/export`, payload);
   return res.data as {
     message: string;
     projectId: string;

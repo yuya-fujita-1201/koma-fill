@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   analyzeImages,
-  createProject,
   generateImages,
   generateLayout,
   generatePrompts,
@@ -18,6 +17,7 @@ import {
   MangaProject,
   UploadedImage,
 } from '../types';
+import { useProject } from './useProject';
 
 export function useMangaGeneration() {
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
@@ -37,6 +37,7 @@ export function useMangaGeneration() {
   const [error, setError] = useState<string | null>(null);
 
   const isGenerating = progress.stage !== 'idle';
+  const { createProject: createProjectAction } = useProject();
 
   const addImage = (image: UploadedImage) => {
     setUploadedImages((prev) => {
@@ -69,7 +70,10 @@ export function useMangaGeneration() {
     });
   };
 
-  const startGeneration = async (projectName: string): Promise<string> => {
+  const startGeneration = async (
+    projectName: string,
+    existingProjectId?: string
+  ): Promise<string> => {
     if (!projectName.trim()) {
       throw new Error('プロジェクト名を入力してください');
     }
@@ -90,14 +94,19 @@ export function useMangaGeneration() {
         message: 'プロジェクトを作成中...',
       });
 
-      const created = await createProject({
-        projectName,
-        storyPrompt,
-        layoutConfig,
-        generationSettings,
-      });
-      const createdProjectId = created.id as string;
+      let createdProjectId = existingProjectId;
 
+      if (!createdProjectId) {
+        const created = await createProjectAction({
+          projectName,
+          storyPrompt,
+          layoutConfig,
+          generationSettings,
+        });
+        createdProjectId = created.id;
+      }
+
+      const createdProject = { id: createdProjectId };
       setProgress({
         stage: 'uploading',
         currentStep: 2,
@@ -166,7 +175,7 @@ export function useMangaGeneration() {
       });
       await generateLayout(createdProjectId);
 
-      const latest = await getProject(createdProjectId);
+      const latest = await getProject(createdProject.id);
       setProject(latest);
       setProgress({
         stage: 'idle',

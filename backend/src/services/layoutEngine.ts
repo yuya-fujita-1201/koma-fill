@@ -10,6 +10,7 @@
 import { LayoutConfig, SpeechBubble, DEFAULT_LAYOUT_CONFIG } from '../models/types';
 import sharp from 'sharp';
 import fs from 'fs/promises';
+import { ValidationError } from '../middleware/errorHandler';
 
 export interface ComposedLayout {
   buffer: Buffer;
@@ -49,6 +50,10 @@ export class LayoutEngine {
     panelImagePaths: string[],
     config: LayoutConfig = DEFAULT_LAYOUT_CONFIG
   ): Promise<ComposedLayout> {
+    if (!Array.isArray(panelImagePaths) || panelImagePaths.length === 0) {
+      throw new ValidationError('At least one panel image path is required');
+    }
+
     const grid = this.calculateGrid(panelImagePaths.length, config);
     const positions = this.calculatePanelPositions(grid, config);
 
