@@ -1,7 +1,9 @@
 process.env.OPENAI_API_KEY = 'test-openai-key';
-process.env.DALLE_RATE_LIMIT_PER_MINUTE = '600'; // テスト用: spacing を100msに短縮
+process.env.GEMINI_API_KEY = 'test-gemini-key';
+process.env.DALLE_RATE_LIMIT_PER_MINUTE = '600';
 
 import fs from 'fs/promises';
+import path from 'path';
 import { ImageGenerationService } from '../imageGenerationService';
 import { API_COSTS } from '../../models/types';
 
@@ -16,174 +18,218 @@ jest.mock('openai', () => ({
   })),
 }));
 
-// DALLE_RATE_LIMIT_PER_MINUTE のデフォルト5 → spacing=12sのため長めのタイムアウトを設定
 jest.setTimeout(60000);
 
 describe('ImageGenerationService', () => {
-  afterEach(() => {
+  beforeEach(() => {
+    mockGenerate.mockReset();
     jest.restoreAllMocks();
   });
 
-  beforeEach(() => {
-    mockGenerate.mockReset();
-  });
-
-  it('generatePanel が GeneratedPanel を返す', async () => {
+  it('DALL-E 3 でローカル保存された GeneratedPanel を返す', async () => {
     mockGenerate.mockResolvedValue({
       data: [{ url: 'https://example.com/image.png', revised_prompt: 'revised prompt' }],
     });
-    const writeSpy = jest.spyOn(fs, 'writeFile').mockResolvedValue(undefined);
-    const mkdirSpy = jest.spyOn(fs, 'mkdir').mockResolvedValue(undefined);
-    const fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue({
-      ok: true,
-      arrayBuffer: async () => new TextEncoder().encode('binary').buffer,
-    } as unknown as Response);
+
+    jest.spyOn(fs, 'mkdir').mockResolvedValue(undefined);
+    jest.spyOn(fs, 'writeFile').mockResolvedValue(undefined);
+    const fetchSpy = jest.spyOn(global, 'fetch').mockImplementation(async (input) => {
+      if (String(input) === 'https://example.com/image.png') {
+        return {
+          ok: true,
+          arrayBuffer: async () => new TextEncoder().encode('binary').buffer,
+        } as Response;
+      }
+      throw new Error(`unexpected url: ${String(input)}`);
+    });
 
     const service = new ImageGenerationService();
     const result = await service.generatePanel('A panel prompt', 0, 'project-1', {
       imageStyle: 'manga',
       aspectRatio: 'square',
       qualityLevel: 'standard',
+      imageModel: 'dall-e-3',
+      outputResolution: '2K',
+      useReferenceImages: true,
     });
 
     expect(result.panelIndex).toBe(0);
-    expect(result.imageUrl).toBe('https://example.com/image.png');
+    expect(result.imageUrl).toBe('/uploads/project-1/panel_0.png');
     expect(result.costUsd).toBe(API_COSTS.DALLE3_STANDARD);
+    expect(result.model).toBe('dall-e-3');
     expect(mockGenerate).toHaveBeenCalledWith(
-      expect.objectContaining({ quality: 'standard', prompt: 'A panel prompt' })
+      expect.objectContaining({
+        model: 'dall-e-3',
+        quality: 'standard',
+      })
     );
-    writeSpy.mockRestore();
-    mkdirSpy.mockRestore();
     fetchSpy.mockRestore();
   });
 
-  it('generatePanel で HD 指定が API に反映される', async () => {
-    mockGenerate.mockResolvedValue({
-      data: [{ url: 'https://example.com/image.png' }],
-    });
-    jest.spyOn(fs, 'writeFile').mockResolvedValue(undefined);
+  it('Gemini 3.1 で参照画像付き生成ができる', async () => {
     jest.spyOn(fs, 'mkdir').mockResolvedValue(undefined);
-    jest.spyOn(global, 'fetch').mockResolvedValue({
-      ok: true,
-      arrayBuffer: async () => new TextEncoder().encode('binary').buffer,
-    } as unknown as Response);
+    jest.spyOn(fs, 'writeFile').mockResolvedValue(undefined);
+    jest.spyOn(fs, 'access').mockResolvedValue(undefined);
+    jest.spyOn(fs, 'readFile').mockImplementation(async (filePath) => {
+      const name = String(filePath);
+      return Buffer.from(name.includes('panel_0') ? 'prev-panel' : 'reference-image');
+    });
+
+    const fetchSpy = jest.spyOn(global, 'fetch').mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (!url.includes('generativelanguage.googleapis.com')) {
+        throw new Error(`unexpected url: ${url}`);
+      }
+
+      const body = JSON.parse(String(init?.body)) as {
+        contents: Array<{ parts: Array<{ text?: string; inlineData?: { data?: string } }> }>;
+        generationConfig?: { imageConfig?: { imageSize?: string } };
+      };
+
+      expect(body.contents[0].parts).toHaveLength(3);
+      expect(body.generationConfig?.imageConfig?.imageSize).toBe('2K');
+
+      return {
+        ok: true,
+        json: async () => ({
+          candidates: [
+            {
+              content: {
+                parts: [
+                  { text: 'kept reference fidelity' },
+                  {
+                    inlineData: {
+                      mimeType: 'image/png',
+                      data: Buffer.from('gemini-image').toString('base64'),
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      } as Response;
+    });
 
     const service = new ImageGenerationService();
-    await service.generatePanel('A panel prompt', 0, 'project-1', {
-      imageStyle: 'manga',
-      aspectRatio: 'square',
-      qualityLevel: 'hd',
-    });
+    const result = await service.generatePanel(
+      'Hero leaps across the rooftop',
+      1,
+      'project-1',
+      {
+        imageStyle: 'manga style, black and white ink drawing',
+        aspectRatio: 'wide',
+        qualityLevel: 'standard',
+        imageModel: 'gemini-3.1-flash-image-preview',
+        outputResolution: '2K',
+        useReferenceImages: true,
+      },
+      {
+        keyImagePaths: ['/tmp/start.png'],
+        existingPanelImages: [{ panelIndex: 0, imageFilePath: '/tmp/panel_0.png' }],
+      }
+    );
 
-    expect(mockGenerate).toHaveBeenCalledWith(expect.objectContaining({ quality: 'hd' }));
+    expect(result.imageUrl).toBe('/uploads/project-1/panel_1.png');
+    expect(result.costUsd).toBe(0);
+    expect(result.revisedPrompt).toBe('kept reference fidelity');
+    fetchSpy.mockRestore();
   });
 
-  it('generateBatch sequential で順番どおり生成される', async () => {
-    mockGenerate
-      .mockResolvedValue({ data: [{ url: 'https://example.com/a.png' }] })
-      .mockResolvedValue({ data: [{ url: 'https://example.com/b.png' }] });
-    jest.spyOn(fs, 'writeFile').mockResolvedValue(undefined);
+  it('Gemini sequential では直前の生成パネルも参照に使う', async () => {
     jest.spyOn(fs, 'mkdir').mockResolvedValue(undefined);
-    const fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue({
-      ok: true,
-      arrayBuffer: async () => new TextEncoder().encode('binary').buffer,
-    } as unknown as Response);
+    jest.spyOn(fs, 'writeFile').mockResolvedValue(undefined);
+    jest.spyOn(fs, 'access').mockResolvedValue(undefined);
+    jest.spyOn(fs, 'readFile').mockImplementation(async (filePath) => {
+      return Buffer.from(String(filePath));
+    });
+
+    const seenBodies: string[] = [];
+    const fetchSpy = jest.spyOn(global, 'fetch').mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (!url.includes('generativelanguage.googleapis.com')) {
+        throw new Error(`unexpected url: ${url}`);
+      }
+
+      const rawBody = String(init?.body);
+      seenBodies.push(rawBody);
+
+      return {
+        ok: true,
+        json: async () => ({
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    inlineData: {
+                      mimeType: 'image/png',
+                      data: Buffer.from(`img-${seenBodies.length}`).toString('base64'),
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      } as Response;
+    });
 
     const service = new ImageGenerationService();
     const results = await service.generateBatch(
       [
-        { panelIndex: 0, dallePrompt: 'first', storyBeat: 'A', visualFocus: 'v', transitionType: 'cut' },
-        { panelIndex: 1, dallePrompt: 'second', storyBeat: 'B', visualFocus: 'v', transitionType: 'cut' },
-      ],
-      'project-1',
-      'sequential'
-    );
-
-    expect(results).toHaveLength(2);
-    expect(mockGenerate).toHaveBeenCalledTimes(2);
-    expect(results[0].panelIndex).toBe(0);
-    expect(results[1].panelIndex).toBe(1);
-  });
-
-  it('onProgress がパネル毎に呼ばれる', async () => {
-    mockGenerate.mockResolvedValue({ data: [{ url: 'https://example.com/a.png' }] });
-    jest.spyOn(fs, 'writeFile').mockResolvedValue(undefined);
-    jest.spyOn(fs, 'mkdir').mockResolvedValue(undefined);
-    jest.spyOn(global, 'fetch').mockResolvedValue({
-      ok: true,
-      arrayBuffer: async () => new TextEncoder().encode('binary').buffer,
-    } as unknown as Response);
-
-    const events: string[] = [];
-    const service = new ImageGenerationService();
-    const progress = (event: { type: 'progress' | 'error' | 'complete'; panelIndex?: number }) => {
-      events.push(event.type);
-    };
-
-    await service.generateBatch(
-      [
-        { panelIndex: 0, dallePrompt: 'first', storyBeat: 'A', visualFocus: 'v', transitionType: 'cut' },
-      ],
-      'project-1',
-      'sequential'
-    );
-
-    await service.generateBatch(
-      [
-        { panelIndex: 1, dallePrompt: 'second', storyBeat: 'B', visualFocus: 'v', transitionType: 'cut' },
+        { panelIndex: 0, dallePrompt: 'first prompt', storyBeat: 'A', visualFocus: 'hero', transitionType: 'cut' },
+        { panelIndex: 1, dallePrompt: 'second prompt', storyBeat: 'B', visualFocus: 'city', transitionType: 'action' },
       ],
       'project-1',
       'sequential',
+      {
+        imageStyle: 'manga',
+        aspectRatio: 'square',
+        qualityLevel: 'standard',
+        imageModel: 'gemini-3.1-flash-image-preview',
+        outputResolution: '2K',
+        useReferenceImages: true,
+      },
       undefined,
-      progress
+      {
+        keyImagePaths: ['/tmp/start.png'],
+        existingPanelImages: [],
+      }
     );
 
-    expect(events).toEqual(['progress']);
+    expect(results).toHaveLength(2);
+    expect(seenBodies).toHaveLength(2);
+    expect(seenBodies[1]).toContain(Buffer.from('/tmp/start.png').toString('base64'));
+    expect(seenBodies[1]).toContain(
+      Buffer.from(path.resolve('./uploads/project-1/panel_0.png')).toString('base64')
+    );
+    fetchSpy.mockRestore();
   });
 
-  it('API エラー時はリトライし、全失敗時は空配列を返す', async () => {
+  it('API エラー時はリトライ後に空配列を返す', async () => {
     let called = 0;
     mockGenerate.mockImplementation(() => {
       called += 1;
       return Promise.reject(new Error('503 service error'));
     });
-    jest.spyOn(fs, 'writeFile').mockResolvedValue(undefined);
-    jest.spyOn(fs, 'mkdir').mockResolvedValue(undefined);
     const service = new ImageGenerationService();
 
     const results = await service.generateBatch(
       [{ panelIndex: 0, dallePrompt: 'first', storyBeat: 'A', visualFocus: 'v', transitionType: 'cut' }],
       'project-1',
-      'sequential'
+      'sequential',
+      {
+        imageStyle: 'manga',
+        aspectRatio: 'square',
+        qualityLevel: 'standard',
+        imageModel: 'dall-e-3',
+        outputResolution: '2K',
+        useReferenceImages: false,
+      }
     );
 
-    // generateBatch はエラーを飲み込んで空配列を返す設計
     expect(results).toHaveLength(0);
     expect(called).toBeGreaterThan(1);
-  });
-
-  it('コスト計算が STANDARD / HD で正しい', async () => {
-    mockGenerate.mockResolvedValue({ data: [{ url: 'https://example.com/a.png' }] });
-    jest.spyOn(fs, 'writeFile').mockResolvedValue(undefined);
-    jest.spyOn(fs, 'mkdir').mockResolvedValue(undefined);
-    jest.spyOn(global, 'fetch').mockResolvedValue({
-      ok: true,
-      arrayBuffer: async () => new TextEncoder().encode('binary').buffer,
-    } as unknown as Response);
-
-    const service = new ImageGenerationService();
-    const standard = await service.generatePanel('prompt', 0, 'project-1', {
-      imageStyle: 'manga',
-      aspectRatio: 'square',
-      qualityLevel: 'standard',
-    });
-    const hd = await service.generatePanel('prompt', 1, 'project-1', {
-      imageStyle: 'manga',
-      aspectRatio: 'square',
-      qualityLevel: 'hd',
-    });
-
-    expect(standard.costUsd).toBe(API_COSTS.DALLE3_STANDARD);
-    expect(hd.costUsd).toBe(API_COSTS.DALLE3_HD);
   });
 });

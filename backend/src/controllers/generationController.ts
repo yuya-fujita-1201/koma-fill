@@ -6,6 +6,7 @@ import {
   AnalyzeImagesRequest,
   GenerateImagesRequest,
   GeneratePromptsRequest,
+  GenerationSettings,
   KeyImage,
   PanelPrompt,
   RegeneratePanelRequest,
@@ -16,6 +17,7 @@ import { panelRepository } from '../repositories/panelRepository';
 import { keyImageRepository } from '../repositories/keyImageRepository';
 import { ImageGenerationService } from '../services/imageGenerationService';
 import { ImageAnalysisService } from '../services/imageAnalysisService';
+import { LayoutEngine } from '../services/layoutEngine';
 import { PromptGenerationService } from '../services/promptGenerationService';
 
 const analyzeSchema = Joi.object<AnalyzeImagesRequest>({
@@ -36,6 +38,66 @@ const generateImagesSchema = Joi.object<GenerateImagesRequest>({
 const imageAnalysisService = new ImageAnalysisService();
 const promptGenerationService = new PromptGenerationService();
 const imageGenerationService = new ImageGenerationService();
+const layoutEngine = new LayoutEngine();
+
+function buildPanelImagePrompt(panel: {
+  prompt?: string;
+  storyBeat?: string;
+  speechBubbleText?: string;
+}) {
+  const prompt = panel.prompt?.trim();
+  const storyBeat = panel.storyBeat?.trim();
+  const speechBubbleText = panel.speechBubbleText?.trim();
+  const parts: string[] = [];
+
+  if (prompt) {
+    parts.push(prompt);
+  } else if (storyBeat) {
+    parts.push(storyBeat);
+  }
+
+  if (speechBubbleText) {
+    parts.push(
+      `このコマのセリフ・モノローグ: 「${speechBubbleText}」`,
+      'この言葉の感情が、表情・視線・ポーズ・空気感に自然に表れるように描写する。',
+      'ただし、このセリフそのものを画像の中に文字として描かない。セリフと吹き出しはレイアウト側で後から合成するので、画像自体には文字入りの吹き出し、字幕、UIウィンドウ、テロップ、看板文字を表示しない。'
+    );
+  }
+
+  return parts.join('\n');
+}
+
+function inferPanelAspectRatio(width: number, height: number): GenerationSettings['aspectRatio'] {
+  const ratio = width / height;
+  if (ratio >= 1.15) {
+    return 'wide';
+  }
+  if (ratio <= 0.85) {
+    return 'tall';
+  }
+  return 'square';
+}
+
+function buildPanelLayoutHints(project: NonNullable<Awaited<ReturnType<typeof projectRepository.getProject>>>) {
+  const positions = layoutEngine.getPanelPositions(project.layoutConfig.totalPanels, project.layoutConfig);
+
+  return positions.map((position) => {
+    const aspectRatio = inferPanelAspectRatio(position.width, position.height);
+    const framingHint = aspectRatio === 'tall'
+      ? 'This panel slot is portrait-oriented. Compose vertically, keep the subject fully inside frame, and leave safe margin at top and bottom for crop.'
+      : aspectRatio === 'wide'
+        ? 'This panel slot is landscape-oriented. Compose horizontally, spread action left-to-right, and avoid placing critical details too close to the side edges.'
+        : 'This panel slot is near-square. Keep the subject centered with even safe margins on all sides for crop.';
+
+    return {
+      panelIndex: position.panelIndex,
+      width: position.width,
+      height: position.height,
+      aspectRatio,
+      framingHint,
+    };
+  });
+}
 
 export async function analyzeImages(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
@@ -117,6 +179,7 @@ export async function generatePrompts(req: Request, res: Response, next: NextFun
         return panelRepository.updatePanel(panel.id, {
           prompt: prompt.dallePrompt,
           storyBeat: prompt.storyBeat,
+          speechBubbleText: prompt.suggestedDialogue ?? panel.speechBubbleText,
           status: 'pending',
         });
       })
@@ -146,18 +209,19 @@ export async function generateImages(req: Request, res: Response, next: NextFunc
     if (!project) {
       throw new NotFoundError('Project');
     }
+    const panelLayoutHints = buildPanelLayoutHints(project);
 
     const panelsToGenerate = project.panels
       .filter((panel) => !payload.panelIndices || payload.panelIndices.includes(panel.panelIndex))
-      .filter((panel) => Boolean(panel.prompt));
+      .filter((panel) => Boolean(panel.prompt || panel.storyBeat || panel.speechBubbleText));
 
     if (panelsToGenerate.length === 0) {
-      throw new ValidationError('No target panels with prompts found');
+      throw new ValidationError('No target panels with prompts or story beats found');
     }
 
     const panelPrompts = panelsToGenerate.map((panel) => ({
       panelIndex: panel.panelIndex,
-      dallePrompt: panel.prompt as string,
+      dallePrompt: buildPanelImagePrompt(panel),
       storyBeat: panel.storyBeat ?? `Panel ${panel.panelIndex + 1}`,
       visualFocus: 'main subject',
       transitionType: 'cut' as const,
@@ -175,6 +239,14 @@ export async function generateImages(req: Request, res: Response, next: NextFunc
       project.generationSettings,
       (progressEvent) => {
         res.write(`data: ${JSON.stringify(progressEvent)}\n\n`);
+      },
+      {
+        keyImagePaths: project.keyImages.map((image) => image.imageFilePath),
+        existingPanelImages: project.panels.map((panel) => ({
+          panelIndex: panel.panelIndex,
+          imageFilePath: panel.imageFilePath,
+        })),
+        panelLayoutHints,
       }
     );
 
@@ -257,6 +329,7 @@ export async function regeneratePanel(req: Request, res: Response, next: NextFun
     if (!project) {
       throw new NotFoundError('Project');
     }
+    const panelLayoutHints = buildPanelLayoutHints(project);
 
     const targetPanel = project.panels.find((panel) => panel.panelIndex === parsedPanelIndex);
     if (!targetPanel) {
@@ -266,7 +339,7 @@ export async function regeneratePanel(req: Request, res: Response, next: NextFun
     const requestedPrompt = typeof req.body?.newPrompt === 'string'
       ? req.body.newPrompt.trim()
       : '';
-    const prompt = requestedPrompt || targetPanel.prompt;
+    const prompt = requestedPrompt || buildPanelImagePrompt(targetPanel);
     if (!prompt) {
       throw new ValidationError('No prompt found for target panel');
     }
@@ -284,7 +357,18 @@ export async function regeneratePanel(req: Request, res: Response, next: NextFun
       [panelPrompt],
       projectId,
       'sequential',
-      project.generationSettings
+      project.generationSettings,
+      undefined,
+      {
+        keyImagePaths: project.keyImages.map((image) => image.imageFilePath),
+        existingPanelImages: project.panels
+          .filter((panel) => panel.panelIndex < parsedPanelIndex)
+          .map((panel) => ({
+            panelIndex: panel.panelIndex,
+            imageFilePath: panel.imageFilePath,
+          })),
+        panelLayoutHints,
+      }
     );
 
     if (generatedPanels.length === 0) {

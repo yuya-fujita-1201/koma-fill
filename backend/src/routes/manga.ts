@@ -11,6 +11,8 @@ import {
   getProject,
   listProjects,
   reorderPanels,
+  updatePanel,
+  updateProject,
   uploadKeyImages,
   upload,
 } from '../controllers/projectController';
@@ -32,7 +34,9 @@ router.use(authenticate);
 // Project CRUD
 router.post('/create', createProject);
 router.post('/:projectId/upload', upload.array('images', 10), uploadKeyImages);
+router.put('/:projectId', updateProject);
 router.put('/:projectId/reorder', reorderPanels);
+router.put('/:projectId/panels/:panelIndex', updatePanel);
 router.delete('/:projectId/panels/:panelIndex', deletePanel);
 router.delete('/:projectId', deleteProject);
 router.get('/:projectId', getProject);

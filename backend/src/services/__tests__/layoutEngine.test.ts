@@ -40,13 +40,14 @@ describe('LayoutEngine', () => {
     );
 
     expect(layout.format).toBe('png');
+    expect(layout.readingOrder).toBe('japanese');
     expect(layout.panelPositions).toHaveLength(2);
   });
 
   it('panelPositions がパネル数と一致する', async () => {
     const layout = await engine.composePanels(
       ['a.png', 'b.png', 'c.png', 'd.png'],
-      defaultConfig({ totalPanels: 4, format: 'horizontal' })
+      defaultConfig({ totalPanels: 4, layoutTemplate: 'hero_focus_5', format: 'horizontal' })
     );
 
     expect(layout.panelPositions).toHaveLength(4);
@@ -57,6 +58,7 @@ describe('LayoutEngine', () => {
       ['a.png', 'b.png', 'c.png', 'd.png'],
       defaultConfig({
         totalPanels: 4,
+        layoutTemplate: 'hero_focus_5',
         format: 'horizontal',
         readingOrder: 'japanese',
         pageWidth: 400,
@@ -77,6 +79,7 @@ describe('LayoutEngine', () => {
       ['a.png', 'b.png', 'c.png', 'd.png'],
       defaultConfig({
         totalPanels: 4,
+        layoutTemplate: 'hero_focus_5',
         format: 'horizontal',
         readingOrder: 'western',
         pageWidth: 400,
@@ -95,19 +98,54 @@ describe('LayoutEngine', () => {
   it('addSpeechBubbles が SVG を合成する', async () => {
     const layout = await engine.composePanels(
       ['a.png'],
-      defaultConfig({ totalPanels: 1 })
+      defaultConfig({ totalPanels: 1, pageWidth: 400, pageHeight: 400, gutterSize: 0, borderWidth: 0 })
     );
+    mockSharpInstance.composite.mockClear();
     const next = await engine.addSpeechBubbles(layout, [
       {
         panelIndex: 0,
         text: 'hello',
-        position: 'middle',
+        position: 'top',
         style: 'rounded',
       },
     ]);
 
     expect(next).toHaveProperty('buffer');
     expect(next.panelPositions).toEqual(layout.panelPositions);
+    const bubbleComposites = mockSharpInstance.composite.mock.calls[0][0] as Array<{ input: Buffer }>;
+    expect(bubbleComposites[0].input.toString()).toContain('<rect x="160" y="16" width="224"');
+  });
+
+  it('同一パネルの2つ目の吹き出しは反対側に逃がす', async () => {
+    const layout = await engine.composePanels(
+      ['a.png'],
+      defaultConfig({ totalPanels: 1, pageWidth: 400, pageHeight: 400, gutterSize: 0, borderWidth: 0 })
+    );
+    mockSharpInstance.composite.mockClear();
+
+    await engine.addSpeechBubbles(layout, [
+      { panelIndex: 0, text: 'first', position: 'top', style: 'rounded' },
+      { panelIndex: 0, text: 'second', position: 'top', style: 'rounded' },
+    ]);
+
+    const bubbleComposites = mockSharpInstance.composite.mock.calls[0][0] as Array<{ input: Buffer }>;
+    expect(bubbleComposites[0].input.toString()).toContain('<rect x="160" y="16" width="224"');
+    expect(bubbleComposites[1].input.toString()).toContain('<rect x="16" y="16" width="224"');
+  });
+
+  it('rectangular 吹き出しは上部の横長ボックスにする', async () => {
+    const layout = await engine.composePanels(
+      ['a.png'],
+      defaultConfig({ totalPanels: 1, pageWidth: 400, pageHeight: 400, gutterSize: 0, borderWidth: 0 })
+    );
+    mockSharpInstance.composite.mockClear();
+
+    await engine.addSpeechBubbles(layout, [
+      { panelIndex: 0, text: 'ナレーション: これは長い説明文です。', position: 'middle', style: 'rectangular' },
+    ]);
+
+    const bubbleComposites = mockSharpInstance.composite.mock.calls[0][0] as Array<{ input: Buffer }>;
+    expect(bubbleComposites[0].input.toString()).toContain('<rect x="16" y="16" width="360"');
   });
 
   it('空のパネル配列で ValidationError を投げる', async () => {
@@ -118,9 +156,10 @@ describe('LayoutEngine', () => {
 });
 
 function defaultConfig(overrides: Partial<LayoutConfig> = {}): LayoutConfig {
-  return {
-    totalPanels: 2,
-    format: 'vertical',
+    return {
+      totalPanels: 2,
+      layoutTemplate: 'conversation_grid_4',
+      format: 'vertical',
     readingOrder: 'japanese',
     gutterSize: 10,
     borderWidth: 2,

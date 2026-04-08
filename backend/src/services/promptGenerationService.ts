@@ -1,6 +1,6 @@
 /**
  * PromptGenerationService
- * ストーリープロンプト＋画像分析 → 各コマ用DALL-E 3プロンプトを生成
+ * ストーリープロンプト＋画像分析 → 各コマ用画像生成プロンプトを生成
  */
 
 import OpenAI from 'openai';
@@ -28,6 +28,10 @@ function toPanelPrompt(raw: Record<string, unknown>, index: number, panelCount: 
   const transition = typeof raw.transitionType === 'string' && TRANSITIONS.includes(raw.transitionType as TransitionType)
     ? (raw.transitionType as TransitionType)
     : inferTransition(index, panelCount);
+  const dialogue =
+    typeof raw.suggestedDialogue === 'string' && raw.suggestedDialogue.trim() && raw.suggestedDialogue.trim().toLowerCase() !== 'null'
+      ? raw.suggestedDialogue.trim()
+      : undefined;
 
   return {
     panelIndex: typeof raw.panelIndex === 'number' ? raw.panelIndex : index,
@@ -35,7 +39,7 @@ function toPanelPrompt(raw: Record<string, unknown>, index: number, panelCount: 
     storyBeat: typeof raw.storyBeat === 'string' ? raw.storyBeat : '',
     visualFocus: typeof raw.visualFocus === 'string' ? raw.visualFocus : 'main subject',
     transitionType: transition,
-    suggestedDialogue: typeof raw.suggestedDialogue === 'string' ? raw.suggestedDialogue : undefined,
+    suggestedDialogue: dialogue,
   };
 }
 
@@ -55,6 +59,10 @@ export class PromptGenerationService {
     panelCount: number,
     settings?: GenerationSettings
   ): Promise<PanelPrompt[]> {
+    if (!CONFIG.OPENAI_API_KEY) {
+      throw new OpenAIError('OPENAI_API_KEY is not configured');
+    }
+
     if (!storyPrompt.trim()) {
       throw new ValidationError('storyPrompt is required');
     }
@@ -100,10 +108,10 @@ export class PromptGenerationService {
         const idx = normalized.length;
         normalized.push({
           panelIndex: idx,
-          storyBeat: `Panel ${idx + 1} continuation`,
-          visualFocus: 'main subject',
+          storyBeat: `コマ${idx + 1}の出来事`,
+          visualFocus: '主役',
           transitionType: inferTransition(idx, panelCount),
-          dallePrompt: `Create a manga panel in ${mergedSettings.imageStyle}. Show clear character action and scene continuity.`,
+          dallePrompt: `${mergedSettings.imageStyle}。キャラクターの行動と場面の連続性が伝わる漫画コマを描く。`,
         });
       }
 
@@ -176,37 +184,49 @@ function buildSystemPrompt(
     .join('\n\n');
 
   return `
-You are an expert manga storyboard artist. Your job is to create exactly ${panelCount} panel descriptions
-for a manga sequence based on the user's story prompt and key image analysis.
+あなたは商業漫画のネーム構成を行う編集者兼ネーム作家です。ユーザーのストーリーから、ちょうど ${panelCount} コマ分のネーム案を作ってください。
 
-## Key Image Analysis:
-${keyImageDescriptions || 'No key image analysis provided.'}
+【重要】
+- storyBeat, visualFocus, suggestedDialogue は必ず日本語で書くこと
+- dallePrompt も日本語で書くこと
+- suggestedDialogue はセリフが不要なら null ではなく空文字 "" を返すこと
+- 説明文や前置きは出さず、JSON だけを返すこと
 
-## Art Style:
+【参照画像分析】
+${keyImageDescriptions || '参照画像分析なし'}
+
+【画風】
 ${style}
 
-## Output Format:
-Return a JSON object with a "panels" array. Each panel should have:
+【生成条件】
+- 対象モデル: ${settings?.imageModel || 'gemini-3.1-flash-image-preview'}
+- 参照画像利用: ${settings?.useReferenceImages ? '有効' : '無効'}
+
+【返却形式】
 {
   "panels": [
     {
       "panelIndex": 0,
-      "dallePrompt": "A detailed visual description for DALL-E 3 (100-300 words). Include art style, composition, character details, lighting, and concrete visual actions.",
-      "storyBeat": "What happens in this panel (1-2 sentences)",
-      "visualFocus": "Where the viewer's eye should be drawn",
+      "dallePrompt": "画像生成モデルに渡せる詳細な視覚プロンプト。画風、構図、人物、背景、光、感情、連続性を含める。",
+      "storyBeat": "このコマで何が起きるかを1〜2文で日本語で書く",
+      "visualFocus": "視線の中心を日本語で短く書く",
       "transitionType": "cut|pan|zoom_in|zoom_out|fade|action",
-      "suggestedDialogue": "Optional dialogue for speech bubble (null if none)"
+      "suggestedDialogue": "吹き出し用の短い日本語セリフ。不要なら空文字"
     }
   ]
 }
 
-## Rules:
-1. Create exactly ${panelCount} panels.
-2. DALL-E prompts must be self-contained.
-3. Maintain character consistency and recurring traits.
-4. Include style phrase in each prompt: "${style}".
-5. Vary shot composition and framing across panels.
-6. Respect safety and content policy constraints.
+【ルール】
+1. 必ず ${panelCount} コマ返すこと
+2. 各コマの出来事は連続した物語として自然につながること
+3. キャラクターの見た目、服装、小物、舞台は安定させること
+4. 各コマで構図や距離感に変化をつけること
+5. 画像プロンプトには必ず画風 "${style}" を反映すること
+6. 参照画像に既存の服装、顔、持ち物があるなら維持すること
+7. 安全ポリシーに反しない内容にすること
+8. セリフは後から吹き出しとして合成するので、画像の中に文字や擬似吹き出しを直接描かないこと
+9. コマ画像はフルブリード前提にし、コマの内側に白い余白、額縁、内枠、擬似ガターを入れないこと
+10. 必要なら被写体の端が少し切れてもよいので、構図を画面いっぱいに使うこと
 `;
 }
 

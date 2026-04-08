@@ -5,6 +5,7 @@ import {
   DEFAULT_GENERATION_SETTINGS,
   DEFAULT_LAYOUT_CONFIG,
   GenerationSettings,
+  getLayoutTemplateDefinition,
   ImagePosition,
   KeyImage,
   LayoutConfig,
@@ -36,13 +37,23 @@ interface CreateProjectInput extends CreateMangaRequest {
   totalCost?: number;
 }
 
+function normalizeLayoutConfig(layoutConfig: Partial<LayoutConfig> | LayoutConfig): LayoutConfig {
+  const merged = { ...DEFAULT_LAYOUT_CONFIG, ...layoutConfig };
+  const template = getLayoutTemplateDefinition(merged.layoutTemplate);
+  return {
+    ...merged,
+    layoutTemplate: template.id,
+    totalPanels: template.totalPanels,
+  };
+}
+
 function mapProjectRow(row: ProjectRow, panels: Panel[] = [], keyImages: KeyImage[] = []): MangaProject {
   return {
     id: row.id,
     name: row.name,
     description: row.description ?? undefined,
     status: row.status,
-    layoutConfig: JSON.parse(row.layoutConfig) as LayoutConfig,
+    layoutConfig: normalizeLayoutConfig(JSON.parse(row.layoutConfig) as LayoutConfig),
     generationSettings: JSON.parse(row.generationSettings) as GenerationSettings,
     panels,
     keyImages,
@@ -116,7 +127,7 @@ export class ProjectRepository {
     const name = data.name ?? data.projectName;
     const description = data.storyPrompt;
     const status: ProjectStatus = data.status ?? 'draft';
-    const layoutConfig = { ...DEFAULT_LAYOUT_CONFIG, ...data.layoutConfig };
+    const layoutConfig = normalizeLayoutConfig(data.layoutConfig);
     const generationSettings = { ...DEFAULT_GENERATION_SETTINGS, ...data.generationSettings };
     const createdAt = data.createdAt ?? now;
     const updatedAt = data.updatedAt ?? now;
@@ -194,7 +205,9 @@ export class ProjectRepository {
     const next: MangaProject = {
       ...existing,
       ...updates,
-      layoutConfig: updates.layoutConfig ? { ...existing.layoutConfig, ...updates.layoutConfig } : existing.layoutConfig,
+      layoutConfig: updates.layoutConfig
+        ? normalizeLayoutConfig({ ...existing.layoutConfig, ...updates.layoutConfig })
+        : existing.layoutConfig,
       generationSettings: updates.generationSettings
         ? { ...existing.generationSettings, ...updates.generationSettings }
         : existing.generationSettings,

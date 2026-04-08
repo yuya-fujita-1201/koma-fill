@@ -8,8 +8,11 @@ import { CONFIG } from '../config/constants';
 import {
   CreateMangaRequest,
   KeyImage,
+  LAYOUT_TEMPLATE_IDS,
   Panel,
   ReorderPanelsRequest,
+  UpdatePanelRequest,
+  UpdateProjectRequest,
 } from '../models/types';
 import { NotFoundError, ValidationError } from '../middleware/errorHandler';
 import { projectRepository } from '../repositories/projectRepository';
@@ -22,6 +25,7 @@ const createMangaSchema = Joi.object<CreateMangaRequest>({
   storyPrompt: Joi.string().trim().min(1).required(),
   layoutConfig: Joi.object({
     totalPanels: Joi.number().integer().min(1).max(CONFIG.MAX_PANELS_PER_PROJECT),
+    layoutTemplate: Joi.string().valid(...LAYOUT_TEMPLATE_IDS),
     format: Joi.string().valid('vertical', 'horizontal', 'square'),
     readingOrder: Joi.string().valid('japanese', 'western'),
     gutterSize: Joi.number().integer().min(0),
@@ -35,6 +39,14 @@ const createMangaSchema = Joi.object<CreateMangaRequest>({
     imageStyle: Joi.string().trim().min(1),
     aspectRatio: Joi.string().valid('square', 'wide', 'tall'),
     qualityLevel: Joi.string().valid('standard', 'hd'),
+    imageModel: Joi.string().valid(
+      'gemini-3.1-flash-image-preview',
+      'gemini-3-pro-image-preview',
+      'gemini-2.5-flash-image',
+      'dall-e-3'
+    ),
+    outputResolution: Joi.string().valid('1K', '2K', '4K'),
+    useReferenceImages: Joi.boolean(),
     negativePrompt: Joi.string().allow('', null),
     seed: Joi.number().integer(),
   }).optional(),
@@ -43,6 +55,44 @@ const createMangaSchema = Joi.object<CreateMangaRequest>({
 const reorderSchema = Joi.object<ReorderPanelsRequest>({
   panelOrder: Joi.array().items(Joi.number().integer().min(0)).min(1).required(),
 });
+
+const updatePanelSchema = Joi.object<UpdatePanelRequest>({
+  prompt: Joi.string().trim().allow('').optional(),
+  storyBeat: Joi.string().trim().allow('').optional(),
+  speechBubbleText: Joi.string().trim().allow('').optional(),
+}).min(1);
+
+const updateProjectSchema = Joi.object<UpdateProjectRequest>({
+  projectName: Joi.string().trim().min(1).max(200).optional(),
+  storyPrompt: Joi.string().trim().min(1).optional(),
+  layoutConfig: Joi.object({
+    totalPanels: Joi.number().integer().min(1).max(CONFIG.MAX_PANELS_PER_PROJECT),
+    layoutTemplate: Joi.string().valid(...LAYOUT_TEMPLATE_IDS),
+    format: Joi.string().valid('vertical', 'horizontal', 'square'),
+    readingOrder: Joi.string().valid('japanese', 'western'),
+    gutterSize: Joi.number().integer().min(0),
+    borderWidth: Joi.number().integer().min(0),
+    borderColor: Joi.string().pattern(/^#[0-9A-Fa-f]{6}$/),
+    backgroundColor: Joi.string().pattern(/^#[0-9A-Fa-f]{6}$/),
+    pageWidth: Joi.number().integer().min(200),
+    pageHeight: Joi.number().integer().min(200),
+  }).optional(),
+  generationSettings: Joi.object({
+    imageStyle: Joi.string().trim().min(1),
+    aspectRatio: Joi.string().valid('square', 'wide', 'tall'),
+    qualityLevel: Joi.string().valid('standard', 'hd'),
+    imageModel: Joi.string().valid(
+      'gemini-3.1-flash-image-preview',
+      'gemini-3-pro-image-preview',
+      'gemini-2.5-flash-image',
+      'dall-e-3'
+    ),
+    outputResolution: Joi.string().valid('1K', '2K', '4K'),
+    useReferenceImages: Joi.boolean(),
+    negativePrompt: Joi.string().allow('', null),
+    seed: Joi.number().integer(),
+  }).optional(),
+}).min(1);
 
 export const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
@@ -173,6 +223,83 @@ export async function getProject(req: Request, res: Response, next: NextFunction
   }
 }
 
+export async function updateProject(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const { projectId } = req.params;
+    const { error, value } = updateProjectSchema.validate(req.body, {
+      abortEarly: false,
+      stripUnknown: true,
+    });
+    if (error) {
+      throw new ValidationError(error.details.map((d) => d.message).join(', '));
+    }
+
+    const project = await projectRepository.getProject(projectId);
+    if (!project) {
+      throw new NotFoundError('Project');
+    }
+
+    const payload = value as UpdateProjectRequest;
+    const nextProject = await projectRepository.updateProject(projectId, {
+      name: payload.projectName ?? project.name,
+      description: payload.storyPrompt ?? project.description,
+      layoutConfig: payload.layoutConfig
+        ? {
+            ...project.layoutConfig,
+            ...payload.layoutConfig,
+          }
+        : project.layoutConfig,
+      generationSettings: payload.generationSettings
+        ? {
+            ...project.generationSettings,
+            ...payload.generationSettings,
+          }
+        : project.generationSettings,
+    });
+
+    const existingPanels = await panelRepository.getPanelsByProject(projectId);
+    const desiredCount = nextProject.layoutConfig.totalPanels;
+
+    if (existingPanels.length > desiredCount) {
+      const surplusPanels = existingPanels
+        .sort((a, b) => a.panelIndex - b.panelIndex)
+        .slice(desiredCount);
+
+      for (const panel of surplusPanels) {
+        if (panel.imageFilePath) {
+          try {
+            await fs.promises.unlink(panel.imageFilePath);
+          } catch {
+            // ignore missing file
+          }
+        }
+        await panelRepository.deletePanel(panel.id);
+      }
+    } else if (existingPanels.length < desiredCount) {
+      const now = new Date().toISOString();
+      for (let panelIndex = existingPanels.length; panelIndex < desiredCount; panelIndex += 1) {
+        await panelRepository.createPanel(projectId, {
+          id: uuidv4(),
+          projectId,
+          panelIndex,
+          status: 'pending',
+          retryCount: 0,
+          createdAt: now,
+        });
+      }
+    }
+
+    const synced = await projectRepository.getProject(projectId);
+    if (!synced) {
+      throw new Error('Failed to load updated project');
+    }
+
+    res.json(synced);
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function listProjects(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const limit = Math.min(Number(req.query.limit ?? 20) || 20, 100);
@@ -204,6 +331,43 @@ export async function deleteProject(req: Request, res: Response, next: NextFunct
     }
 
     res.json({ message: 'Project deleted' });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function updatePanel(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const { projectId, panelIndex } = req.params;
+    const { error, value } = updatePanelSchema.validate(req.body, {
+      stripUnknown: true,
+      abortEarly: false,
+    });
+    if (error) {
+      throw new ValidationError(error.details.map((d) => d.message).join(', '));
+    }
+
+    const project = await projectRepository.getProject(projectId);
+    if (!project) {
+      throw new NotFoundError('Project');
+    }
+
+    const idx = parseInt(panelIndex, 10);
+    const target = project.panels.find((panel) => panel.panelIndex === idx);
+    if (!target) {
+      throw new NotFoundError('Panel');
+    }
+
+    const payload = value as UpdatePanelRequest;
+    const nextStatus = target.imageFilePath ? target.status : 'pending';
+    const updated = await panelRepository.updatePanel(target.id, {
+      prompt: payload.prompt ?? target.prompt,
+      storyBeat: payload.storyBeat ?? target.storyBeat,
+      speechBubbleText: payload.speechBubbleText ?? target.speechBubbleText,
+      status: nextStatus,
+    });
+
+    res.json(updated);
   } catch (err) {
     next(err);
   }

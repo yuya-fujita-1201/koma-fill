@@ -2,6 +2,7 @@ process.env.VISION_RATE_LIMIT_PER_MINUTE = '60000';
 process.env.OPENAI_API_KEY = 'test-openai-key';
 
 import { OpenAIError, ValidationError } from '../../middleware/errorHandler';
+import { CONFIG } from '../../config/constants';
 import { ImageAnalysisService } from '../imageAnalysisService';
 
 const mockCreate = jest.fn();
@@ -48,7 +49,7 @@ describe('ImageAnalysisService', () => {
       artStyle: mockAnalysis.artStyle,
     });
     expect(mockCreate).toHaveBeenCalledTimes(1);
-    expect((mockCreate.mock.calls[0]?.[0] as { model?: string }).model).toBe('gpt-4o');
+    expect((mockCreate.mock.calls[0]?.[0] as { model?: string }).model).toBe(CONFIG.VISION_MODEL);
   });
 
   it('analyzeImage の深さが detailed でより長いシステムプロンプトが使われる', async () => {

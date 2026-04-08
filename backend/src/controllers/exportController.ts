@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import fs from 'fs';
-import { LayoutConfig, SpeechBubble } from '../models/types';
+import { LayoutConfig, Panel, SpeechBubble } from '../models/types';
 import { NotFoundError, ValidationError } from '../middleware/errorHandler';
 import { projectRepository } from '../repositories/projectRepository';
 import { LayoutEngine } from '../services/layoutEngine';
@@ -10,6 +10,66 @@ import { CONFIG } from '../config/constants';
 
 const layoutEngine = new LayoutEngine();
 const exportService = new ExportService();
+
+export function buildAutomaticSpeechBubbles(panels: Panel[]): SpeechBubble[] {
+  return [...panels]
+    .sort((a, b) => a.panelIndex - b.panelIndex)
+    .flatMap((panel) => {
+      const text = panel.speechBubbleText?.trim();
+      if (!text) {
+        return [];
+      }
+
+      return [{
+        panelIndex: panel.panelIndex,
+        text,
+        position: inferBubblePosition(text),
+        style: inferBubbleStyle(text),
+      }];
+    });
+}
+
+function inferBubbleStyle(text: string): SpeechBubble['style'] {
+  if (/^(?:モノローグ|ナレーション|地の文)\s*[:：]/.test(text)) {
+    return 'rectangular';
+  }
+
+  if (/^[（(].+[）)]$/.test(text.trim())) {
+    return 'cloud';
+  }
+
+  if (/[!?？！]{2,}/.test(text) || /[!?？！]$/.test(text)) {
+    return 'spiked';
+  }
+
+  if (text.length >= 40) {
+    return 'rectangular';
+  }
+
+  return 'rounded';
+}
+
+function inferBubblePosition(text: string): SpeechBubble['position'] {
+  if (/^(?:モノローグ|ナレーション|地の文)\s*[:：]/.test(text)) {
+    return 'top';
+  }
+
+  if (text.length >= 28) {
+    return 'middle';
+  }
+
+  return 'top';
+}
+
+function toSafeFileSegment(value: string): string {
+  const normalized = value
+    .normalize('NFKC')
+    .replace(/[<>:"/\\|?*\u0000-\u001F]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return normalized || 'manga-project';
+}
 
 export async function composeLayout(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
@@ -31,9 +91,13 @@ export async function composeLayout(req: Request, res: Response, next: NextFunct
     }
 
     let layout = await layoutEngine.composePanels(panelPaths, project.layoutConfig as LayoutConfig);
+    const requestedBubbles = Array.isArray(speechBubbles) ? speechBubbles as SpeechBubble[] : [];
+    const resolvedSpeechBubbles = requestedBubbles.length > 0
+      ? requestedBubbles
+      : buildAutomaticSpeechBubbles(project.panels);
 
-    if (speechBubbles && Array.isArray(speechBubbles) && speechBubbles.length > 0) {
-      layout = await layoutEngine.addSpeechBubbles(layout, speechBubbles as SpeechBubble[]);
+    if (resolvedSpeechBubbles.length > 0) {
+      layout = await layoutEngine.addSpeechBubbles(layout, resolvedSpeechBubbles);
     }
 
     const layoutPath = path.join(CONFIG.STORAGE_PATH, projectId, 'layout.png');
@@ -87,6 +151,7 @@ export async function exportManga(req: Request, res: Response, next: NextFunctio
       width: project.layoutConfig.pageWidth,
       height: project.layoutConfig.pageHeight,
       format: 'png' as const,
+      readingOrder: project.layoutConfig.readingOrder,
       panelPositions: [],
     };
 
@@ -99,10 +164,13 @@ export async function exportManga(req: Request, res: Response, next: NextFunctio
     });
 
     const timestamp = Date.now();
-    const filename = `manga_${timestamp}`;
+    const safeProjectName = toSafeFileSegment(project.name);
+    const filename = `${safeProjectName}_${timestamp}`;
 
-    const outputDir = path.join(CONFIG.STORAGE_PATH, projectId);
-    const filePath = await exportService.saveToFile(result, outputDir, filename);
+    const internalOutputDir = path.join(CONFIG.STORAGE_PATH, projectId);
+    const internalFilePath = await exportService.saveToFile(result, internalOutputDir, filename);
+    const manuscriptOutputDir = path.join(CONFIG.EXPORT_PATH, safeProjectName);
+    const savedPath = await exportService.saveToFile(result, manuscriptOutputDir, filename);
 
     await projectRepository.updateProject(projectId, { status: 'exported' });
 
@@ -110,7 +178,9 @@ export async function exportManga(req: Request, res: Response, next: NextFunctio
       message: 'Export successful',
       projectId,
       format: result.format,
-      downloadUrl: `/uploads/${projectId}/${path.basename(filePath)}`,
+      downloadUrl: `/uploads/${projectId}/${path.basename(internalFilePath)}`,
+      savedPath,
+      savedDirectory: manuscriptOutputDir,
       fileSize: result.fileSize,
     });
   } catch (err) {

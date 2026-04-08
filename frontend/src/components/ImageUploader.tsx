@@ -18,11 +18,14 @@ function normalizePosition(value: string): ImagePosition {
 export default function ImageUploader({ onImagesChange, maxImages = 2 }: ImageUploaderProps) {
   const [images, setImages] = useState<UploadedImage[]>([]);
   const imagesRef = useRef<UploadedImage[]>([]);
+  // コールバックを ref で保持し、依存配列から除外して無限ループを防止
+  const onImagesChangeRef = useRef(onImagesChange);
+  onImagesChangeRef.current = onImagesChange;
 
   useEffect(() => {
     imagesRef.current = images;
-    onImagesChange(images);
-  }, [images, onImagesChange]);
+    onImagesChangeRef.current(images);
+  }, [images]);
 
   // アンマウント時のみ残っているObjectURLを解放
   useEffect(() => {
@@ -84,17 +87,17 @@ export default function ImageUploader({ onImagesChange, maxImages = 2 }: ImageUp
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors
+        className={`rounded-xl border-2 border-dashed p-5 text-center transition-colors
           ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-white'}
           ${hasLimitReached ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:border-blue-400'}
         `}
       >
         <input {...getInputProps()} disabled={hasLimitReached} />
-        <p className="text-gray-600">ここに画像をドラッグ＆ドロップ、またはクリックして選択</p>
-        <p className="text-sm text-gray-400 mt-2">
+        <p className="text-sm text-gray-600">ここに画像をドラッグ＆ドロップ、またはクリックして選択</p>
+        <p className="mt-1 text-xs text-gray-400">
           JPEG, PNG, WebP（最大{maxImages}枚、各20MBまで）
         </p>
       </div>
@@ -102,21 +105,21 @@ export default function ImageUploader({ onImagesChange, maxImages = 2 }: ImageUp
       {images.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {images.map((image, index) => (
-            <div key={`${image.file.name}-${index}`} className="border rounded-lg overflow-hidden bg-white">
+            <div key={`${image.file.name}-${index}`} className="overflow-hidden rounded-xl border bg-white">
               <img
                 src={image.previewUrl}
                 alt={`uploaded-${index}`}
-                className="w-full h-48 object-cover"
+                className="h-24 w-full object-cover"
               />
-              <div className="p-3 space-y-2">
-                <p className="text-sm text-gray-700 truncate" title={image.file.name}>
+              <div className="space-y-2 p-3">
+                <p className="truncate text-xs text-gray-700" title={image.file.name}>
                   {image.file.name}
                 </p>
-                <label className="block text-xs text-gray-500">ストーリー上の位置</label>
+                <label className="block text-[11px] text-gray-500">ストーリー上の位置</label>
                 <select
                   value={String(image.position)}
                   onChange={(e) => updatePosition(index, normalizePosition(e.target.value))}
-                  className="w-full border border-gray-300 rounded p-2 text-sm"
+                  className="w-full rounded border border-gray-300 p-2 text-xs"
                 >
                   <option value="start">開始シーン</option>
                   <option value="end">終端シーン</option>
@@ -129,7 +132,7 @@ export default function ImageUploader({ onImagesChange, maxImages = 2 }: ImageUp
                 <button
                   type="button"
                   onClick={() => removeImage(index)}
-                  className="w-full text-sm px-3 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200"
+                  className="w-full rounded bg-red-100 px-3 py-2 text-xs text-red-700 hover:bg-red-200"
                 >
                   削除
                 </button>

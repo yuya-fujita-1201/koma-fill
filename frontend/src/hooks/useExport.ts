@@ -3,6 +3,8 @@ import { composeLayout, exportManga } from '../services/apiClient';
 
 interface ExportResult {
   downloadUrl: string;
+  savedPath: string;
+  savedDirectory: string;
   format: string;
   fileSize: number;
 }

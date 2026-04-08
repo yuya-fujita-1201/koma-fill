@@ -6,7 +6,7 @@ import path from 'path';
 const apiTarget = (() => {
   const raw = process.env.SMOKE_API_BASE || process.env.VITE_API_BASE_URL;
   if (!raw) {
-    return 'http://localhost:5000';
+    return 'http://localhost:3001';
   }
   try {
     return new URL(raw).origin;

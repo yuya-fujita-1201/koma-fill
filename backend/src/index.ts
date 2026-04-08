@@ -14,6 +14,7 @@ async function main() {
     console.log(`🎨 koma-fill server running on ${CONFIG.BASE_URL}`);
     console.log(`📖 Environment: ${CONFIG.NODE_ENV}`);
     console.log(`🔑 OpenAI API Key: ${CONFIG.OPENAI_API_KEY ? '✓ configured' : '✗ missing'}`);
+    console.log(`🍌 Gemini API Key: ${CONFIG.GEMINI_API_KEY ? '✓ configured' : '✗ missing'}`);
   });
 }
 

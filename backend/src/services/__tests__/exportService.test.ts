@@ -10,6 +10,7 @@ const baseLayout: ComposedLayout = {
   width: 10,
   height: 10,
   format: 'png',
+  readingOrder: 'japanese',
   panelPositions: [],
 };
 

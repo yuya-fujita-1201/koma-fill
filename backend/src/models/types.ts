@@ -11,8 +11,73 @@ export type ProjectStatus = 'draft' | 'analyzing' | 'generating' | 'complete' | 
 export type PanelStatus = 'pending' | 'generated' | 'failed' | 'placeholder';
 export type LayoutFormat = 'vertical' | 'horizontal' | 'square';
 export type ReadingOrder = 'japanese' | 'western';
+export type LayoutTemplateId =
+  | 'conversation_grid_4'
+  | 'intro_top_wide_4'
+  | 'hero_focus_5'
+  | 'action_flow_5'
+  | 'quiet_vertical_4'
+  | 'montage_mosaic_6';
 export type ExportFormat = 'png' | 'jpg' | 'pdf';
 export type ImagePosition = 'start' | 'end' | number;
+export type ImageModel =
+  | 'gemini-3.1-flash-image-preview'
+  | 'gemini-3-pro-image-preview'
+  | 'gemini-2.5-flash-image'
+  | 'dall-e-3';
+export type OutputResolution = '1K' | '2K' | '4K';
+
+export interface LayoutTemplateDefinition {
+  id: LayoutTemplateId;
+  label: string;
+  description: string;
+  totalPanels: number;
+}
+
+export const LAYOUT_TEMPLATES: LayoutTemplateDefinition[] = [
+  {
+    id: 'conversation_grid_4',
+    label: '標準会話',
+    description: '読みやすい2x2。会話や状況説明の基本形。',
+    totalPanels: 4,
+  },
+  {
+    id: 'intro_top_wide_4',
+    label: '導入ワイド',
+    description: '1コマ目を横長で大きく見せる導入向け。',
+    totalPanels: 4,
+  },
+  {
+    id: 'hero_focus_5',
+    label: '見せゴマ強調',
+    description: '大きい主役コマを中心に据える見せ場構成。',
+    totalPanels: 5,
+  },
+  {
+    id: 'action_flow_5',
+    label: 'アクション流し',
+    description: '中央ワイドで動線を作る勢い重視の構成。',
+    totalPanels: 5,
+  },
+  {
+    id: 'quiet_vertical_4',
+    label: '静かな間',
+    description: '縦のリズムで余韻を作る静かなページ向け。',
+    totalPanels: 4,
+  },
+  {
+    id: 'montage_mosaic_6',
+    label: '回想モンタージュ',
+    description: 'サイズ差のある断片コマで情報量を出す構成。',
+    totalPanels: 6,
+  },
+];
+
+export const LAYOUT_TEMPLATE_IDS = LAYOUT_TEMPLATES.map((template) => template.id) as LayoutTemplateId[];
+
+export function getLayoutTemplateDefinition(id?: LayoutTemplateId): LayoutTemplateDefinition {
+  return LAYOUT_TEMPLATES.find((template) => template.id === id) ?? LAYOUT_TEMPLATES[0];
+}
 
 export interface MangaProject {
   id: string;
@@ -95,6 +160,7 @@ export type TransitionType = 'cut' | 'pan' | 'zoom_in' | 'zoom_out' | 'fade' | '
 
 export interface LayoutConfig {
   totalPanels: number;     // 4, 6, 8, etc.
+  layoutTemplate: LayoutTemplateId;
   format: LayoutFormat;
   readingOrder: ReadingOrder;
   gutterSize: number;      // px
@@ -107,14 +173,15 @@ export interface LayoutConfig {
 
 export const DEFAULT_LAYOUT_CONFIG: LayoutConfig = {
   totalPanels: 4,
+  layoutTemplate: 'conversation_grid_4',
   format: 'vertical',
   readingOrder: 'japanese',
   gutterSize: 10,
   borderWidth: 2,
   borderColor: '#000000',
   backgroundColor: '#FFFFFF',
-  pageWidth: 800,
-  pageHeight: 1200,
+  pageWidth: 840,
+  pageHeight: 1188,
 };
 
 // ============================================
@@ -125,6 +192,9 @@ export interface GenerationSettings {
   imageStyle: string;      // "manga", "comic", "watercolor", etc.
   aspectRatio: 'square' | 'wide' | 'tall';
   qualityLevel: 'standard' | 'hd';
+  imageModel: ImageModel;
+  outputResolution: OutputResolution;
+  useReferenceImages: boolean;
   negativePrompt?: string;
   seed?: number;
 }
@@ -133,6 +203,9 @@ export const DEFAULT_GENERATION_SETTINGS: GenerationSettings = {
   imageStyle: 'manga style, black and white ink drawing',
   aspectRatio: 'square',
   qualityLevel: 'standard',
+  imageModel: 'gemini-3.1-flash-image-preview',
+  outputResolution: '2K',
+  useReferenceImages: true,
 };
 
 // ============================================
@@ -173,6 +246,20 @@ export interface RegeneratePanelRequest {
 // PUT /api/manga/:projectId/reorder
 export interface ReorderPanelsRequest {
   panelOrder: number[];
+}
+
+// PUT /api/manga/:projectId/panels/:panelIndex
+export interface UpdatePanelRequest {
+  prompt?: string;
+  storyBeat?: string;
+  speechBubbleText?: string;
+}
+
+export interface UpdateProjectRequest {
+  projectName?: string;
+  storyPrompt?: string;
+  layoutConfig?: Partial<LayoutConfig>;
+  generationSettings?: Partial<GenerationSettings>;
 }
 
 // POST /api/manga/:projectId/layout

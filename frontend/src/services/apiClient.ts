@@ -34,6 +34,19 @@ export async function getProject(projectId: string) {
   return res.data;
 }
 
+export async function updateProject(
+  projectId: string,
+  data: {
+    projectName?: string;
+    storyPrompt?: string;
+    layoutConfig?: object;
+    generationSettings?: object;
+  }
+) {
+  const res = await api.put(`/manga/${projectId}`, data);
+  return res.data;
+}
+
 export async function listProjects(limit?: number, offset?: number) {
   const params = new URLSearchParams();
   if (limit !== undefined) {
@@ -118,6 +131,19 @@ export async function regeneratePanel(projectId: string, panelIndex: number, new
   return res.data;
 }
 
+export async function updatePanel(
+  projectId: string,
+  panelIndex: number,
+  updates: {
+    prompt?: string;
+    storyBeat?: string;
+    speechBubbleText?: string;
+  }
+) {
+  const res = await api.put(`/manga/${projectId}/panels/${panelIndex}`, updates);
+  return res.data;
+}
+
 export async function deletePanel(projectId: string, panelIndex: number) {
   const res = await api.delete(`/manga/${projectId}/panels/${panelIndex}`);
   return res.data;
@@ -166,6 +192,8 @@ export async function exportManga(
     projectId: string;
     format: 'png' | 'jpg' | 'pdf';
     downloadUrl: string;
+    savedPath: string;
+    savedDirectory: string;
     fileSize: number;
   };
 }

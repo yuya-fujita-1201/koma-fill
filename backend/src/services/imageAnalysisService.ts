@@ -54,6 +54,10 @@ export class ImageAnalysisService {
   }
 
   async analyzeImage(imageBase64: string, depth: 'quick' | 'detailed'): Promise<ImageAnalysis> {
+    if (!CONFIG.OPENAI_API_KEY) {
+      throw new OpenAIError('OPENAI_API_KEY is not configured');
+    }
+
     const systemPrompt = depth === 'quick' ? QUICK_ANALYSIS_PROMPT : DETAILED_ANALYSIS_PROMPT;
 
     try {

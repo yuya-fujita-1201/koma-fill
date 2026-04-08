@@ -8,6 +8,8 @@ import { generalLimiter } from './middleware/rateLimiter';
 import { CONFIG } from './config/constants';
 
 const app = express();
+const uploadsDir = path.resolve(CONFIG.STORAGE_PATH);
+const outputDir = path.resolve(CONFIG.EXPORT_PATH);
 
 // ============================================
 // Middleware
@@ -22,8 +24,8 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use('/api/', generalLimiter);
 
 // Static files (generated images)
-app.use('/uploads', express.static(path.resolve('./uploads')));
-app.use('/output', express.static(path.resolve('./output')));
+app.use('/uploads', express.static(uploadsDir));
+app.use('/output', express.static(outputDir));
 
 // ============================================
 // Routes

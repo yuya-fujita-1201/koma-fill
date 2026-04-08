@@ -1,7 +1,8 @@
 {
   "name": "koma-fill",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "漫画コマ補填ツール - キー画像＋ストーリープロンプトから中間コマを自動生成",
+  "main": "electron/main.cjs",
   "private": true,
   "workspaces": [
     "backend",
@@ -9,15 +10,45 @@
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:desktop": "concurrently -k -n backend,frontend,electron \"npm run dev:backend\" \"npm run dev:frontend\" \"wait-on tcp:3001 http://127.0.0.1:3000 && electron .\"",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",
+    "prepare:backend-runtime": "npm ci --prefix backend --omit=dev",
     "build": "npm run build:backend && npm run build:frontend",
     "build:backend": "cd backend && npm run build",
     "build:frontend": "cd frontend && npm run build",
+    "pack": "npm run build && npm run prepare:backend-runtime && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --dir",
+    "dist": "npm run build && npm run prepare:backend-runtime && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac",
+    "install:launcher": "npm run pack && ./scripts/install-launcher.sh",
     "test": "cd backend && npm test && cd ../frontend && npm test",
     "lint": "cd backend && npm run lint && cd ../frontend && npm run lint"
   },
+  "build": {
+    "appId": "com.marumi-works.koma-fill",
+    "productName": "Koma Fill",
+    "asar": false,
+    "mac": {
+      "category": "public.app-category.graphics-design",
+      "target": "dir",
+      "icon": "assets/icon/koma-fill.icns"
+    },
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "electron/**/*",
+      "assets/icon/**/*",
+      "backend/dist/**/*",
+      "backend/node_modules/**/*",
+      "backend/package.json",
+      "frontend/dist/**/*",
+      "package.json"
+    ]
+  },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "electron": "^35.1.4",
+    "electron-builder": "^26.0.12",
+    "wait-on": "^8.0.3"
   }
 }

@@ -8,7 +8,30 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 import { MangaLayoutViewer } from '../components/MangaLayoutViewer';
 import { useExport } from '../hooks/useExport';
 import { useMangaStore } from '../store/mangaStore';
-import { MangaProject } from '../types';
+import { MangaProject, getLayoutTemplate } from '../types';
+
+function toDisplayImage(imageUrl?: string, imageFilePath?: string): string | undefined {
+  if (imageUrl) {
+    return imageUrl;
+  }
+
+  if (!imageFilePath) {
+    return undefined;
+  }
+
+  const uploadsIndex = imageFilePath.lastIndexOf('/uploads/');
+  if (uploadsIndex >= 0) {
+    return imageFilePath.slice(uploadsIndex);
+  }
+
+  const marker = '/uploads';
+  const markerIndex = imageFilePath.lastIndexOf(marker);
+  if (markerIndex >= 0) {
+    return imageFilePath.slice(markerIndex);
+  }
+
+  return undefined;
+}
 
 export default function PreviewPage() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -34,11 +57,29 @@ export default function PreviewPage() {
     } finally {
       setLoading(false);
     }
-  }, [projectId]);
+  }, [projectId, storeSetProject]);
 
   useEffect(() => {
     void loadProject();
   }, [loadProject]);
+
+  useEffect(() => {
+    if (!projectId || !project || (project.status !== 'complete' && project.status !== 'exported')) {
+      return;
+    }
+
+    const expectedLayoutPath = `/uploads/${projectId}/layout.png`;
+
+    void fetch(expectedLayoutPath, { method: 'HEAD' })
+      .then((response) => {
+        if (response.ok) {
+          setLayoutPath(`${expectedLayoutPath}?t=${Date.now()}`);
+        }
+      })
+      .catch(() => {
+        // レイアウト未生成時は静かに無視
+      });
+  }, [project, projectId]);
 
   const handleRegenerate = async (panelIndex: number) => {
     if (!projectId) {
@@ -117,7 +158,7 @@ export default function PreviewPage() {
         resolution: options.resolution,
       });
       window.open(result.downloadUrl, '_blank', 'noopener,noreferrer');
-      toast.success('エクスポートが完了しました');
+      toast.success(`エクスポート完了: ${result.savedPath}`);
       await loadProject();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'エクスポートに失敗しました');
@@ -143,6 +184,11 @@ export default function PreviewPage() {
     );
   }
 
+  const template = getLayoutTemplate(project.layoutConfig.layoutTemplate);
+  const orderedPanels = [...project.panels].sort((a, b) => a.panelIndex - b.panelIndex);
+  const generatedCount = orderedPanels.filter((panel) => panel.status === 'generated').length;
+  const failedCount = orderedPanels.filter((panel) => panel.status === 'failed').length;
+
   return (
     <div className="space-y-8">
       <section className="flex items-center justify-between">
@@ -150,6 +196,9 @@ export default function PreviewPage() {
           <h2 className="text-2xl font-semibold">{project.name}</h2>
           <p className="text-sm text-gray-500">
             status: {project.status} / total cost: ${project.totalCost.toFixed(3)}
+          </p>
+          <p className="text-xs text-gray-500">
+            template: {template.label} / model: {project.generationSettings.imageModel} / resolution: {project.generationSettings.outputResolution} / refs: {project.generationSettings.useReferenceImages ? 'on' : 'off'}
           </p>
         </div>
         <div className="flex gap-2">
@@ -180,66 +229,168 @@ export default function PreviewPage() {
         </div>
       </section>
 
-      <section>
-        <h3 className="text-lg font-semibold mb-4">パネル一覧</h3>
-        <PanelGrid
-          panels={project.panels}
-          onRegenerate={handleRegenerate}
-          onReorder={handleReorder}
-          onDelete={handleDelete}
-        />
-      </section>
+      <section className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
+        <aside className="space-y-6">
+          <section className="rounded-2xl border bg-white p-5 space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold">ページ設定</h3>
+              <p className="text-sm text-gray-500">
+                左で状態を見ながら、右の完成プレビューを更新します。
+              </p>
+            </div>
+            <dl className="grid grid-cols-2 gap-3 text-sm">
+              <div className="rounded-xl bg-gray-50 p-3">
+                <dt className="text-gray-500">テンプレ</dt>
+                <dd className="mt-1 font-semibold text-gray-900">{template.label}</dd>
+              </div>
+              <div className="rounded-xl bg-gray-50 p-3">
+                <dt className="text-gray-500">生成済み</dt>
+                <dd className="mt-1 font-semibold text-gray-900">{generatedCount} / {orderedPanels.length}</dd>
+              </div>
+              <div className="rounded-xl bg-gray-50 p-3">
+                <dt className="text-gray-500">読み順</dt>
+                <dd className="mt-1 font-semibold text-gray-900">{project.layoutConfig.readingOrder === 'japanese' ? '右→左' : '左→右'}</dd>
+              </div>
+              <div className="rounded-xl bg-gray-50 p-3">
+                <dt className="text-gray-500">失敗コマ</dt>
+                <dd className="mt-1 font-semibold text-gray-900">{failedCount}</dd>
+              </div>
+            </dl>
+            <div className="grid gap-3">
+              <button
+                type="button"
+                className="rounded-xl bg-green-600 px-4 py-3 font-semibold text-white transition hover:bg-green-700"
+                onClick={handleLayout}
+              >
+                完成ページを更新
+              </button>
+              <button
+                type="button"
+                className="rounded-xl bg-yellow-500 px-4 py-3 font-semibold text-white transition hover:bg-yellow-600"
+                onClick={() => {
+                  const failed = project.panels.filter((p) => p.status === 'failed');
+                  if (failed.length === 0) {
+                    toast('再生成対象の失敗パネルはありません', { icon: 'ℹ️' });
+                    return;
+                  }
+                  void Promise.all(failed.map((panel) => regeneratePanel(project.id, panel.panelIndex)))
+                    .then(() => {
+                      toast.success('失敗パネルの再生成を開始しました');
+                      return loadProject();
+                    })
+                    .catch((err) => {
+                      toast.error(err instanceof Error ? err.message : '再生成に失敗しました');
+                    });
+                }}
+              >
+                失敗コマを再生成
+              </button>
+            </div>
+          </section>
 
-      <section className="flex gap-3">
-        <button
-          type="button"
-          className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
-          onClick={() => {
-            const failed = project.panels.filter((p) => p.status === 'failed');
-            if (failed.length === 0) {
-              toast('再生成対象の失敗パネルはありません', { icon: 'ℹ️' });
-              return;
-            }
-            void Promise.all(failed.map((panel) => regeneratePanel(project.id, panel.panelIndex)))
-              .then(() => {
-                toast.success('失敗パネルの再生成を開始しました');
-                return loadProject();
-              })
-              .catch((err) => {
-                toast.error(err instanceof Error ? err.message : '再生成に失敗しました');
-              });
-          }}
-        >
-          失敗パネルを再生成
-        </button>
+          <section className="rounded-2xl border bg-white p-5 space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold">コマ素材</h3>
+              <p className="text-sm text-gray-500">
+                個別の絵を確認しながら、必要なコマだけ再生成します。
+              </p>
+            </div>
+            <div className="space-y-3">
+              {orderedPanels.map((panel) => {
+                const imageSrc = toDisplayImage(panel.imageUrl, panel.imageFilePath);
+                return (
+                  <div key={panel.id} className="rounded-xl border border-gray-200 p-3">
+                    <div className="flex gap-3">
+                      <div className="h-24 w-20 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                        {imageSrc ? (
+                          <img src={imageSrc} alt={`Panel ${panel.panelIndex + 1}`} className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="flex h-full items-center justify-center text-xs text-gray-400">
+                            {panel.status === 'failed' ? '失敗' : '待機'}
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1 space-y-2">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-sm font-semibold text-gray-900">#{panel.panelIndex + 1}</p>
+                          <span className="text-xs text-gray-500">{panel.status}</span>
+                        </div>
+                        <p className="line-clamp-3 text-xs text-gray-600">
+                          {panel.storyBeat || 'story beat not set'}
+                        </p>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleRegenerate(panel.panelIndex)}
+                            className="flex-1 rounded-lg bg-blue-100 px-2 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-200"
+                          >
+                            再生成
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(panel.panelIndex)}
+                            className="flex-1 rounded-lg bg-red-100 px-2 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-200"
+                          >
+                            削除
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
 
-        <button
-          type="button"
-          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-          onClick={handleLayout}
-        >
-          レイアウトを生成
-        </button>
-      </section>
+          <section className="rounded-2xl border bg-white p-5">
+            <h3 className="mb-4 text-lg font-semibold">エクスポート</h3>
+            <ExportOptions onExport={handleExport} isExporting={exporting} />
+          </section>
+        </aside>
 
-      {layoutPath && (
-      <section className="space-y-2">
-        <h3 className="text-lg font-semibold">レイアウトプレビュー</h3>
-        <MangaLayoutViewer
-          imageUrl={layoutPath}
-          dimensions={
-            project
-              ? { width: project.layoutConfig.pageWidth, height: project.layoutConfig.pageHeight }
-              : undefined
-          }
-        />
-        {exporting && <LoadingSpinner size="sm" message="処理中..." />}
+        <section className="space-y-4">
+          <div className="rounded-2xl border bg-white p-5">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-lg font-semibold">完成ページプレビュー</h3>
+                <p className="text-sm text-gray-500">
+                  ここを主役にして、完成形を見ながら調整していく画面に寄せています。
+                </p>
+              </div>
+              {exporting && <LoadingSpinner size="sm" message="処理中..." />}
+            </div>
+
+            {layoutPath ? (
+              <div className="min-h-[70vh]">
+                <MangaLayoutViewer
+                  imageUrl={layoutPath}
+                  dimensions={{ width: project.layoutConfig.pageWidth, height: project.layoutConfig.pageHeight }}
+                />
+              </div>
+            ) : (
+              <div className="flex min-h-[70vh] items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
+                <div className="space-y-3">
+                  <p className="text-lg font-semibold text-gray-900">まだ完成ページがありません</p>
+                  <p className="text-sm text-gray-500">
+                    左の「完成ページを更新」を押すと、現在のコマから1ページのプレビューを生成します。
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <details className="rounded-2xl border bg-white p-5">
+            <summary className="cursor-pointer text-lg font-semibold">コマ一覧を詳細表示</summary>
+            <div className="mt-5">
+              <PanelGrid
+                panels={project.panels}
+                onRegenerate={handleRegenerate}
+                onReorder={handleReorder}
+                onDelete={handleDelete}
+              />
+            </div>
+          </details>
         </section>
-      )}
-
-      <section>
-        <h3 className="text-lg font-semibold mb-4">エクスポート</h3>
-        <ExportOptions onExport={handleExport} isExporting={exporting} />
       </section>
     </div>
   );

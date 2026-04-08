@@ -10,7 +10,7 @@ AI を活用したマンガパネル自動生成ツール。キー画像とス�
 | Frontend | React 18 / TypeScript / Vite / Tailwind CSS |
 | State Management | Zustand |
 | Database | SQLite (better-sqlite3) |
-| AI | OpenAI API (DALL-E 3, GPT-4o) |
+| AI | OpenAI API (GPT-4o, DALL-E 3) / Gemini Native Image (Nano Banana 2 / Pro) |
 | Image Processing | Sharp |
 | Testing | Jest (backend) / Vitest + React Testing Library (frontend) |
 | CI/CD | GitHub Actions |
@@ -42,7 +42,22 @@ npm install
 npm run dev
 ```
 
-ブラウザで http://localhost:3000 にアクセスしてください。
+ブラウザで `http://localhost:3000` にアクセスしてください。
+
+### デスクトップアプリとして起動
+
+```bash
+# 開発モード（Electron + backend + frontend）
+npm run dev:desktop
+
+# macOS アプリをビルド
+npm run pack
+
+# /Applications にインストールして Launchpad から起動
+npm run install:launcher
+```
+
+ビルド後の `.app` は `release/mac-arm64/Koma Fill.app` または `release/mac/Koma Fill.app` に生成されます。
 
 ### Docker での起動
 
@@ -54,7 +69,7 @@ docker compose up -d
 docker compose logs -f
 ```
 
-http://localhost:5000 でアクセスできます。
+`http://localhost:3001` でアクセスできます。
 
 ## API エンドポイント
 
@@ -123,6 +138,9 @@ npm test
 ```bash
 # バックエンド + フロントエンドをビルド
 npm run build
+
+# Electron アプリをビルド
+npm run pack
 ```
 
 ## ライセンス

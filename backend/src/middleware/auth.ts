@@ -6,11 +6,11 @@ import { AppError } from './errorHandler';
  * APIキー認証ミドルウェア
  *
  * - Authorization: Bearer <API_KEY> ヘッダーを検証
- * - 開発環境でAPIキー未設定ならスキップ
- * - 本番環境では必須
+ * - API_KEYS 未設定ならローカルデスクトップ利用を想定してスキップ
+ * - API_KEYS を設定した場合のみ Bearer 認証を強制
  */
 export function authenticate(req: Request, _res: Response, next: NextFunction): void {
-  if (CONFIG.NODE_ENV === 'development' && CONFIG.API_KEYS.length === 0) {
+  if (CONFIG.API_KEYS.length === 0) {
     next();
     return;
   }

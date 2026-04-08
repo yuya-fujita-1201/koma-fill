@@ -132,6 +132,9 @@ describe('PromptGenerationService', () => {
       imageStyle: 'manga',
       aspectRatio: 'square',
       qualityLevel: 'standard',
+      imageModel: 'gemini-3.1-flash-image-preview',
+      outputResolution: '2K',
+      useReferenceImages: true,
     });
 
     const callPayload = mockCreate.mock.calls[0]?.[0] as {
@@ -139,6 +142,7 @@ describe('PromptGenerationService', () => {
     };
     const systemPrompt = callPayload.messages?.[0]?.content ?? '';
     expect(systemPrompt).toContain('Hero');
+    expect(systemPrompt).toContain('フルブリード');
   });
 
   it('imageStyle が出力プロンプトに反映される', async () => {
@@ -163,6 +167,9 @@ describe('PromptGenerationService', () => {
       imageStyle: 'vintage manga',
       aspectRatio: 'square',
       qualityLevel: 'standard',
+      imageModel: 'gemini-3.1-flash-image-preview',
+      outputResolution: '2K',
+      useReferenceImages: true,
     });
 
     expect(prompts[0].dallePrompt).toContain('vintage manga');

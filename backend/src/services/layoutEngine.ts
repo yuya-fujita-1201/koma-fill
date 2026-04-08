@@ -7,7 +7,13 @@
  * 出力: 合成されたレイアウト画像 (Buffer)
  */
 
-import { LayoutConfig, SpeechBubble, DEFAULT_LAYOUT_CONFIG } from '../models/types';
+import {
+  LayoutConfig,
+  LayoutTemplateId,
+  SpeechBubble,
+  DEFAULT_LAYOUT_CONFIG,
+  ReadingOrder,
+} from '../models/types';
 import sharp from 'sharp';
 import fs from 'fs/promises';
 import { ValidationError } from '../middleware/errorHandler';
@@ -17,6 +23,7 @@ export interface ComposedLayout {
   width: number;
   height: number;
   format: 'png';
+  readingOrder: ReadingOrder;
   panelPositions: PanelPosition[];
 }
 
@@ -28,7 +35,64 @@ export interface PanelPosition {
   height: number;
 }
 
+interface TemplateRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+const TEMPLATE_RECTS: Record<LayoutTemplateId, TemplateRect[]> = {
+  conversation_grid_4: [
+    { x: 0.05, y: 0.05, w: 0.42, h: 0.42 },
+    { x: 0.53, y: 0.05, w: 0.42, h: 0.42 },
+    { x: 0.05, y: 0.53, w: 0.42, h: 0.42 },
+    { x: 0.53, y: 0.53, w: 0.42, h: 0.42 },
+  ],
+  intro_top_wide_4: [
+    { x: 0.05, y: 0.05, w: 0.90, h: 0.24 },
+    { x: 0.05, y: 0.35, w: 0.42, h: 0.60 },
+    { x: 0.53, y: 0.35, w: 0.42, h: 0.26 },
+    { x: 0.53, y: 0.69, w: 0.42, h: 0.26 },
+  ],
+  hero_focus_5: [
+    { x: 0.05, y: 0.05, w: 0.58, h: 0.56 },
+    { x: 0.69, y: 0.05, w: 0.26, h: 0.26 },
+    { x: 0.69, y: 0.35, w: 0.26, h: 0.26 },
+    { x: 0.05, y: 0.67, w: 0.42, h: 0.28 },
+    { x: 0.53, y: 0.67, w: 0.42, h: 0.28 },
+  ],
+  action_flow_5: [
+    { x: 0.05, y: 0.05, w: 0.42, h: 0.26 },
+    { x: 0.53, y: 0.05, w: 0.42, h: 0.26 },
+    { x: 0.10, y: 0.37, w: 0.80, h: 0.22 },
+    { x: 0.05, y: 0.67, w: 0.42, h: 0.28 },
+    { x: 0.53, y: 0.67, w: 0.42, h: 0.28 },
+  ],
+  quiet_vertical_4: [
+    { x: 0.08, y: 0.05, w: 0.84, h: 0.17 },
+    { x: 0.08, y: 0.28, w: 0.84, h: 0.17 },
+    { x: 0.08, y: 0.51, w: 0.84, h: 0.17 },
+    { x: 0.08, y: 0.74, w: 0.84, h: 0.17 },
+  ],
+  montage_mosaic_6: [
+    { x: 0.05, y: 0.05, w: 0.42, h: 0.24 },
+    { x: 0.53, y: 0.05, w: 0.42, h: 0.24 },
+    { x: 0.05, y: 0.34, w: 0.26, h: 0.24 },
+    { x: 0.37, y: 0.34, w: 0.58, h: 0.24 },
+    { x: 0.05, y: 0.63, w: 0.42, h: 0.24 },
+    { x: 0.53, y: 0.63, w: 0.42, h: 0.24 },
+  ],
+};
+
 export class LayoutEngine {
+  getPanelPositions(
+    panelCount: number,
+    config: LayoutConfig = DEFAULT_LAYOUT_CONFIG
+  ): PanelPosition[] {
+    return this.calculatePanelPositions(panelCount, config);
+  }
+
   /**
    * メイン：パネル画像群 → 漫画レイアウトに合成
    *
@@ -54,8 +118,7 @@ export class LayoutEngine {
       throw new ValidationError('At least one panel image path is required');
     }
 
-    const grid = this.calculateGrid(panelImagePaths.length, config);
-    const positions = this.calculatePanelPositions(grid, config);
+    const positions = this.calculatePanelPositions(panelImagePaths.length, config);
 
     // 背景キャンバス作成
     const canvas = sharp({
@@ -88,9 +151,10 @@ export class LayoutEngine {
     let result = canvas.composite(composites);
 
     if (config.borderWidth > 0) {
-      const borderSvg = this.generateBorderSvg(positions, config);
-      result = result.composite([{
-        input: borderSvg,
+      const baseLayout = await result.png().toBuffer();
+      const borderOverlay = await this.generateBorderOverlay(positions, config);
+      result = sharp(baseLayout).composite([{
+        input: borderOverlay,
         top: 0,
         left: 0
       }]);
@@ -98,7 +162,14 @@ export class LayoutEngine {
 
     const buffer = await result.png().toBuffer();
 
-    return { buffer, width: config.pageWidth, height: config.pageHeight, format: 'png', panelPositions: positions };
+    return {
+      buffer,
+      width: config.pageWidth,
+      height: config.pageHeight,
+      format: 'png',
+      readingOrder: config.readingOrder,
+      panelPositions: positions,
+    };
   }
 
   /**
@@ -124,27 +195,25 @@ export class LayoutEngine {
     let result = sharp(layout.buffer);
     const panelPositionMap = new Map(layout.panelPositions.map(p => [p.panelIndex, p]));
 
+    const panelBubbleCounts = new Map<number, number>();
+
     const bubbleSvgs = bubbles.map((bubble) => {
       const panelPos = panelPositionMap.get(bubble.panelIndex);
       if (!panelPos) {
         throw new Error(`Panel ${bubble.panelIndex} not found in layout`);
       }
 
-      let targetY: number;
-      switch (bubble.position) {
-        case 'top':
-          targetY = panelPos.y + 30;
-          break;
-        case 'bottom':
-          targetY = panelPos.y + panelPos.height - 60;
-          break;
-        case 'middle':
-        default:
-          targetY = panelPos.y + panelPos.height / 2 - 30;
-          break;
-      }
+      const slotIndex = panelBubbleCounts.get(bubble.panelIndex) ?? 0;
+      panelBubbleCounts.set(bubble.panelIndex, slotIndex + 1);
 
-      const bubbleSvg = this.generateSpeechBubbleSvg(bubble, panelPos, targetY, layout.width, layout.height);
+      const bubbleSvg = this.generateSpeechBubbleSvg(
+        bubble,
+        panelPos,
+        slotIndex,
+        layout.readingOrder,
+        layout.width,
+        layout.height
+      );
       return {
         input: bubbleSvg,
         top: 0,
@@ -199,9 +268,15 @@ export class LayoutEngine {
    * 各パネルの位置とサイズを計算
    */
   private calculatePanelPositions(
-    grid: { cols: number; rows: number },
+    panelCount: number,
     config: LayoutConfig
   ): PanelPosition[] {
+    const template = TEMPLATE_RECTS[config.layoutTemplate];
+    if (template && template.length === panelCount) {
+      return this.calculateTemplatePositions(template, config);
+    }
+
+    const grid = this.calculateGrid(panelCount, config);
     const { cols, rows } = grid;
     const totalGutterX = config.gutterSize * (cols + 1);
     const totalGutterY = config.gutterSize * (rows + 1);
@@ -228,6 +303,25 @@ export class LayoutEngine {
     return positions.sort((a, b) => a.panelIndex - b.panelIndex);
   }
 
+  private calculateTemplatePositions(
+    rects: TemplateRect[],
+    config: LayoutConfig
+  ): PanelPosition[] {
+    const safeWidth = config.pageWidth - config.gutterSize * 2;
+    const safeHeight = config.pageHeight - config.gutterSize * 2;
+
+    return rects.map((rect, panelIndex) => {
+      const normalizedX = config.readingOrder === 'japanese' ? 1 - rect.x - rect.w : rect.x;
+      return {
+        panelIndex,
+        x: Math.round(config.gutterSize + normalizedX * safeWidth),
+        y: Math.round(config.gutterSize + rect.y * safeHeight),
+        width: Math.round(rect.w * safeWidth),
+        height: Math.round(rect.h * safeHeight),
+      };
+    });
+  }
+
   /**
    * サムネイル生成
    */
@@ -243,10 +337,10 @@ export class LayoutEngine {
   /**
    * ボーダーSVGを生成
    */
-  private generateBorderSvg(
+  private async generateBorderOverlay(
     positions: PanelPosition[],
     config: LayoutConfig
-  ): Buffer {
+  ): Promise<Buffer> {
     const rects = positions.map(pos =>
       `<rect x="${pos.x}" y="${pos.y}" width="${pos.width}" height="${pos.height}" ` +
       `fill="none" stroke="${config.borderColor}" stroke-width="${config.borderWidth}" />`
@@ -256,7 +350,9 @@ export class LayoutEngine {
 ${rects}
 </svg>`;
 
-    return Buffer.from(svg, 'utf-8');
+    // Packaged Electron builds on macOS can flatten direct SVG composites to white.
+    // Rasterize the border overlay first so the final composite is stable.
+    return sharp(Buffer.from(svg, 'utf-8')).png().toBuffer();
   }
 
   /**
@@ -265,15 +361,17 @@ ${rects}
   private generateSpeechBubbleSvg(
     bubble: SpeechBubble,
     panelPos: PanelPosition,
-    targetY: number,
+    slotIndex: number,
+    readingOrder: ReadingOrder,
     layoutWidth: number,
     layoutHeight: number
   ): Buffer {
-    const bubbleWidth = Math.min(panelPos.width - 40, 300);
-    const bubbleX = panelPos.x + (panelPos.width - bubbleWidth) / 2;
+    const placement = this.resolveBubblePlacement(bubble, panelPos, slotIndex, readingOrder);
+    const maxCharsPerLine = bubble.style === 'rectangular' ? 22 : 14;
+    const bubbleWidth = placement.width;
+    const bubbleX = placement.x;
 
     // テキストを複数行に分割（日本語対応: 文字数ベース折り返し）
-    const maxCharsPerLine = 15;
     const lines: string[] = [];
     const hasSpaces = bubble.text.includes(' ');
 
@@ -302,6 +400,7 @@ ${rects}
     const lineHeight = 20;
     const verticalPadding = 20;
     const bubbleHeight = Math.max(50, lines.length * lineHeight + verticalPadding);
+    const targetY = placement.y;
 
     let shapePath: string;
     switch (bubble.style) {
@@ -328,8 +427,7 @@ ${rects}
         // 丸み吹き出し（デフォルト）
         shapePath = `<rect x="${bubbleX}" y="${targetY}" width="${bubbleWidth}" height="${bubbleHeight}" ` +
           `rx="10" ry="10" fill="white" stroke="black" stroke-width="2" />` +
-          `<polygon points="${bubbleX + 30},${targetY + bubbleHeight} ${bubbleX + 20},${targetY + bubbleHeight + 15} ` +
-          `${bubbleX + 40},${targetY + bubbleHeight}" fill="white" stroke="black" stroke-width="2" />`;
+          `${this.generateTailPolygon(bubbleX, targetY, bubbleWidth, bubbleHeight, placement.anchor)}`;
         break;
     }
 
@@ -356,6 +454,89 @@ ${textElements}
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&apos;');
+  }
+
+  private resolveBubblePlacement(
+    bubble: SpeechBubble,
+    panelPos: PanelPosition,
+    slotIndex: number,
+    readingOrder: ReadingOrder
+  ): { x: number; y: number; width: number; anchor: 'left' | 'right' | 'center' } {
+    const innerPadding = 16;
+    const nonRectWidth = Math.max(
+      120,
+      Math.min(panelPos.width - innerPadding * 2, Math.round(panelPos.width * 0.56))
+    );
+    const rectWidth = Math.max(
+      160,
+      Math.min(panelPos.width - innerPadding * 2, 360)
+    );
+    const bubbleWidth = bubble.style === 'rectangular' ? rectWidth : nonRectWidth;
+    const leftX = panelPos.x + innerPadding;
+    const centerX = panelPos.x + Math.max(innerPadding, (panelPos.width - bubbleWidth) / 2);
+    const rightX = panelPos.x + panelPos.width - bubbleWidth - innerPadding;
+    const topY = panelPos.y + innerPadding;
+    const middleY = panelPos.y + Math.max(innerPadding, Math.round(panelPos.height * 0.34));
+    const bottomY = panelPos.y + Math.max(innerPadding, panelPos.height - 110);
+
+    if (bubble.style === 'rectangular') {
+      return {
+        x: leftX,
+        y: topY,
+        width: rectWidth,
+        anchor: 'center',
+      };
+    }
+
+    const horizontalPriority = readingOrder === 'japanese'
+      ? (['right', 'left', 'center'] as const)
+      : (['left', 'right', 'center'] as const);
+
+    const verticalPriority = (() => {
+      switch (bubble.position) {
+        case 'bottom':
+          return ['bottom', 'middle', 'top'] as const;
+        case 'middle':
+          return ['middle', 'top', 'bottom'] as const;
+        case 'top':
+        default:
+          return ['top', 'middle', 'bottom'] as const;
+      }
+    })();
+
+    const horizontalChoice = horizontalPriority[Math.min(slotIndex % horizontalPriority.length, horizontalPriority.length - 1)];
+    const rowOffset = Math.floor(slotIndex / horizontalPriority.length);
+    const verticalChoice = verticalPriority[Math.min(rowOffset, verticalPriority.length - 1)];
+
+    return {
+      x: horizontalChoice === 'left' ? leftX : horizontalChoice === 'right' ? rightX : centerX,
+      y: verticalChoice === 'top' ? topY : verticalChoice === 'middle' ? middleY : bottomY,
+      width: bubbleWidth,
+      anchor: horizontalChoice,
+    };
+  }
+
+  private generateTailPolygon(
+    bubbleX: number,
+    bubbleY: number,
+    bubbleWidth: number,
+    bubbleHeight: number,
+    anchor: 'left' | 'right' | 'center'
+  ): string {
+    const baseY = bubbleY + bubbleHeight;
+
+    if (anchor === 'right') {
+      return `<polygon points="${bubbleX + bubbleWidth - 44},${baseY} ${bubbleX + bubbleWidth - 24},${baseY + 16} ` +
+        `${bubbleX + bubbleWidth - 18},${baseY}" fill="white" stroke="black" stroke-width="2" />`;
+    }
+
+    if (anchor === 'center') {
+      return `<polygon points="${bubbleX + bubbleWidth / 2 - 10},${baseY} ${bubbleX + bubbleWidth / 2},${baseY + 16} ` +
+        `${bubbleX + bubbleWidth / 2 + 12},${baseY}" fill="white" stroke="black" stroke-width="2" />`;
+    }
+
+    return `<polygon points="${bubbleX + 28},${baseY} ${bubbleX + 18},${baseY + 16} ` +
+      `${bubbleX + 42},${baseY}" fill="white" stroke="black" stroke-width="2" />`;
   }
 }
 
