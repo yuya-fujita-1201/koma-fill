@@ -9,6 +9,13 @@ import { LoadingSpinner } from '../components/LoadingSpinner';
 import StoryPromptEditor from '../components/StoryPromptEditor';
 import { useMangaGeneration } from '../hooks/useMangaGeneration';
 import { getLayoutTemplate, type Panel } from '../types';
+import {
+  RECOMMENDED_BUBBLE_LENGTH,
+  RECOMMENDED_BUBBLES_PER_PANEL,
+  getDraftCoverageSummary,
+  getPanelFitSummary,
+  getPanelDraftSummary,
+} from '../utils/nameDraft';
 
 type SidebarSectionKey = 'project' | 'images' | 'story' | 'template' | 'name';
 
@@ -16,12 +23,15 @@ function EmptyPagePreview({
   layoutTemplateId,
   storyPrompt,
   projectName,
+  panelStatuses,
 }: {
   layoutTemplateId: Parameters<typeof getLayoutTemplate>[0];
   storyPrompt: string;
   projectName: string;
+  panelStatuses: Array<{ panelIndex: number; isReady: boolean; bubbleCount: number; fitRisk: 'safe' | 'watch' | 'tight' }>;
 }) {
   const template = getLayoutTemplate(layoutTemplateId);
+  const statusByPanelIndex = new Map(panelStatuses.map((status) => [status.panelIndex, status]));
 
   return (
     <div className="flex h-full items-center justify-center rounded-[24px] bg-[linear-gradient(180deg,#f5f7fb_0%,#e9eef7_100%)] p-4 shadow-inner">
@@ -30,7 +40,10 @@ function EmptyPagePreview({
         aria-label={`${projectName.trim() || '新しい漫画ページ'} ${template.label} ${template.totalPanels}コマ ${storyPrompt.trim() ? 'ストーリー入力済み' : 'ストーリー未入力'}`}
       >
         <div className="relative h-full w-full overflow-hidden rounded-[12px] bg-white">
-          {template.preview.map((rect, index) => (
+          {template.preview.map((rect, index) => {
+            const status = statusByPanelIndex.get(index);
+
+            return (
             <div
               key={`${template.id}-${index}`}
               className="absolute overflow-hidden rounded-[6px] border-2 border-black bg-[repeating-linear-gradient(135deg,#f8fafc_0,#f8fafc_18px,#eef2f7_18px,#eef2f7_36px)]"
@@ -44,8 +57,27 @@ function EmptyPagePreview({
               <div className="absolute left-2 top-2 rounded bg-black/70 px-2 py-1 text-[10px] font-semibold text-white">
                 #{index + 1}
               </div>
+              {status && (
+                <div className="absolute bottom-2 right-2 flex flex-col items-end gap-1">
+                  <div className="rounded-full bg-white/85 px-2 py-1 text-[10px] font-semibold text-gray-700 shadow-sm">
+                    {status.isReady ? `ネーム済み / ${status.bubbleCount}吹` : '未入力'}
+                  </div>
+                  {status.fitRisk !== 'safe' && status.isReady && (
+                    <div
+                      className={`rounded-full px-2 py-1 text-[10px] font-semibold shadow-sm ${
+                        status.fitRisk === 'tight'
+                          ? 'bg-amber-100 text-amber-800'
+                          : 'bg-sky-100 text-sky-800'
+                      }`}
+                    >
+                      {status.fitRisk === 'tight' ? '収まり要調整' : '収まり注意'}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
@@ -96,9 +128,11 @@ function SidebarSection({
 
 function NamePanelEditor({
   panel,
+  templateRect,
   onSave,
 }: {
   panel: Panel;
+  templateRect?: ReturnType<typeof getLayoutTemplate>['preview'][number];
   onSave: (panelIndex: number, updates: Partial<Pick<Panel, 'prompt' | 'storyBeat' | 'speechBubbleText'>>) => Promise<void>;
 }) {
   const [storyBeat, setStoryBeat] = useState(panel.storyBeat ?? '');
@@ -111,6 +145,17 @@ function NamePanelEditor({
     setSpeechBubbleText(panel.speechBubbleText ?? '');
     setPrompt(panel.prompt ?? '');
   }, [panel.storyBeat, panel.speechBubbleText, panel.prompt]);
+
+  const draftSummary = useMemo(() => getPanelDraftSummary({
+    panelIndex: panel.panelIndex,
+    storyBeat,
+    speechBubbleText,
+  }), [panel.panelIndex, speechBubbleText, storyBeat]);
+  const fitSummary = useMemo(() => getPanelFitSummary({
+    panelIndex: panel.panelIndex,
+    storyBeat,
+    speechBubbleText,
+  }, templateRect), [panel.panelIndex, speechBubbleText, storyBeat, templateRect]);
 
   const isDirty = storyBeat !== (panel.storyBeat ?? '')
     || speechBubbleText !== (panel.speechBubbleText ?? '')
@@ -133,7 +178,9 @@ function NamePanelEditor({
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-gray-900">コマ {panel.panelIndex + 1}</p>
-          <p className="mt-1 text-[11px] text-gray-500">ここで出来事とセリフを固めてから画像生成します。</p>
+          <p className="mt-1 text-[11px] text-gray-500">
+            ここで出来事とセリフを固めてから画像生成します。現在 {draftSummary.bubbleCount} 吹き出し / 最長 {draftSummary.longestBubbleLength} 文字。
+          </p>
         </div>
         <button
           type="button"
@@ -157,12 +204,36 @@ function NamePanelEditor({
 
         <div>
           <label className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">セリフ</label>
-          <input
+          <textarea
             value={speechBubbleText}
             onChange={(e) => setSpeechBubbleText(e.target.value)}
-            className="w-full rounded-xl border border-gray-300 p-3 text-sm"
-            placeholder="このコマのセリフやモノローグ"
+            className="h-24 w-full rounded-xl border border-gray-300 p-3 text-sm"
+            placeholder="このコマのセリフやモノローグ。改行ごとに別吹き出し"
           />
+          <p className="mt-1 text-[11px] text-gray-500">
+            1行ごとに別吹き出しとして配置します。`ナレーション:` は矩形、`（...）` は思考寄りとして扱います。
+          </p>
+          {draftSummary.longBubbleCount > 0 && (
+            <p className="mt-2 text-[11px] text-amber-700">
+              長い吹き出しがあります。読みやすさ優先なら改行して 2 吹き出しへ分ける方が安全です。
+            </p>
+          )}
+          {draftSummary.hasNarration && draftSummary.bubbleCount > 1 && (
+            <p className="mt-2 text-[11px] text-sky-700">
+              ナレーションがあるコマです。自動配置ではナレーションを上、会話を中段以降へ逃がします。
+            </p>
+          )}
+          {draftSummary.isDense && (
+            <p className="mt-2 text-[11px] text-amber-700">
+              1コマに {RECOMMENDED_BUBBLES_PER_PANEL} 吹き出し以上あります。読みやすさ優先なら別コマ化も検討してください。
+            </p>
+          )}
+          {fitSummary.risk !== 'safe' && (
+            <p className={`mt-2 text-[11px] ${fitSummary.risk === 'tight' ? 'text-amber-700' : 'text-sky-700'}`}>
+              {fitSummary.risk === 'tight' ? 'このテンプレ形状だと文字が詰まりやすいコマです。' : 'このテンプレ形状では少し窮屈になりやすい量です。'}{' '}
+              目安は {fitSummary.estimatedLineUsage} 行ぶん / 許容量 {fitSummary.estimatedLineBudget} 行です。
+            </p>
+          )}
         </div>
 
         <details className="rounded-xl border border-gray-200 bg-white" open={false}>
@@ -222,6 +293,23 @@ export default function CreateMangaPage() {
   const editablePanels = useMemo(
     () => [...(project?.panels ?? [])].sort((a, b) => a.panelIndex - b.panelIndex),
     [project?.panels]
+  );
+  const draftCoverage = useMemo(
+    () => getDraftCoverageSummary(editablePanels, selectedTemplate.preview),
+    [editablePanels, selectedTemplate.preview]
+  );
+  const emptyPreviewStatuses = useMemo(
+    () => editablePanels.map((panel) => {
+      const summary = getPanelDraftSummary(panel);
+      const fitSummary = getPanelFitSummary(panel, selectedTemplate.preview[panel.panelIndex]);
+      return {
+        panelIndex: panel.panelIndex,
+        isReady: summary.isReady,
+        bubbleCount: summary.bubbleCount,
+        fitRisk: fitSummary.risk,
+      };
+    }),
+    [editablePanels, selectedTemplate.preview]
   );
 
   useEffect(() => {
@@ -393,7 +481,7 @@ export default function CreateMangaPage() {
         <SidebarSection
           sectionKey="name"
           title="4. コマ別ネーム"
-          summary={editablePanels.length > 0 ? `${editablePanels.length}コマを確定できます` : 'コマごとの出来事とセリフを作る'}
+          summary={editablePanels.length > 0 ? `${draftCoverage.readyPanels}/${draftCoverage.totalPanels}コマ入力済み / ${draftCoverage.totalBubbles}吹き出し` : 'コマごとの出来事とセリフを作る'}
           openSections={openSections}
           setOpenSections={setOpenSections}
         >
@@ -421,6 +509,52 @@ export default function CreateMangaPage() {
               2. ストーリーはページ全体の要約です。ここでは各コマの出来事とセリフを確定します。普段は空欄から手動で埋め、必要なときだけ AI で叩き台を作る想定です。
             </p>
 
+            {editablePanels.length > 0 && (
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-gray-500">入力済みコマ</p>
+                  <p className="mt-1 text-sm font-semibold text-gray-900">{draftCoverage.readyPanels} / {draftCoverage.totalPanels}</p>
+                </div>
+                <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-gray-500">出来事あり</p>
+                  <p className="mt-1 text-sm font-semibold text-gray-900">{draftCoverage.storyBeatPanels} コマ</p>
+                </div>
+                <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-gray-500">吹き出し総数</p>
+                  <p className="mt-1 text-sm font-semibold text-gray-900">{draftCoverage.totalBubbles} 個</p>
+                </div>
+                <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-gray-500">長文警告</p>
+                  <p className="mt-1 text-sm font-semibold text-gray-900">{draftCoverage.longBubblePanels} コマ</p>
+                </div>
+                <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-gray-500">過密コマ</p>
+                  <p className="mt-1 text-sm font-semibold text-gray-900">{draftCoverage.densePanels} コマ</p>
+                </div>
+                <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-gray-500">ナレーション</p>
+                  <p className="mt-1 text-sm font-semibold text-gray-900">{draftCoverage.narrationPanels} コマ</p>
+                </div>
+                <div className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-gray-500">収まり警告</p>
+                  <p className="mt-1 text-sm font-semibold text-gray-900">{draftCoverage.tightFitPanels} コマ</p>
+                </div>
+              </div>
+            )}
+            {editablePanels.length > 0 && (draftCoverage.longBubblePanels > 0 || draftCoverage.densePanels > 0 || draftCoverage.tightFitPanels > 0) && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-xs text-amber-800">
+                {draftCoverage.longBubblePanels > 0
+                  ? `長い吹き出しが ${draftCoverage.longBubblePanels} コマあります。目安は 1 吹き出し ${RECOMMENDED_BUBBLE_LENGTH} 文字以内です。`
+                  : '長い吹き出しはありません。'}{' '}
+                {draftCoverage.densePanels > 0
+                  ? `吹き出しが多いコマが ${draftCoverage.densePanels} コマあります。生成前に分割すると読みやすくなります。`
+                  : ''}
+                {draftCoverage.tightFitPanels > 0
+                  ? ` テンプレ形状に対して文字が詰まりやすいコマが ${draftCoverage.tightFitPanels} コマあります。短いコマから先にセリフ量を削ってください。`
+                  : ''}
+              </div>
+            )}
+
             {editablePanels.length === 0 ? (
               <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
                 空欄から始める場合は「空欄からコマ別入力」、要約から叩き台を出したい場合は「AIでコマ案を作る」を使います。
@@ -431,6 +565,7 @@ export default function CreateMangaPage() {
                   <NamePanelEditor
                     key={panel.id}
                     panel={panel}
+                    templateRect={selectedTemplate.preview[panel.panelIndex]}
                     onSave={async (panelIndex, updates) => {
                       if (!project?.id) {
                         throw new Error('プロジェクトが見つかりません');
@@ -502,6 +637,7 @@ export default function CreateMangaPage() {
               layoutTemplateId={layoutConfig.layoutTemplate}
               storyPrompt={storyPrompt}
               projectName={projectName}
+              panelStatuses={emptyPreviewStatuses}
             />
           )}
         </div>

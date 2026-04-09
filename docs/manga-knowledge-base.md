@@ -2,7 +2,16 @@
 
 `koma-fill` を「画像生成ツール」から「漫画制作ツール」へ寄せるための実務知識メモ。
 
-更新日: 2026-04-07
+更新日: 2026-04-09
+
+## 0. 2026-04-09 追記メモ
+
+- CLIP STUDIO の `Effective Storytelling, Design Tips` は、storyboard 段階で rough balloons を置いて重要要素を隠さない確認を勧めている。`koma-fill` でも balloon は export 前の飾りではなく、ネーム時点で見えるべき blocking factor と考えるのが正しい。
+- 同記事は balloon 内に十分な margin を残し、1 balloon に長文を押し込まず分けることを勧めている。実装ルールとしては `改行 = 作者の明示的な吹き出し分割` を最優先にし、長文自動分割は補助に留めるのが安全。
+- MediBang の `Manga Tutorial for Beginners 08 Let’s draw frames and speech bubbles.` は、吹き出しを `next to the corner` に置くと画面の空間を確保しやすく、長く話すときは `double bubble` を使えるとしている。これは `右上/左上優先` と `1行=1吹き出し候補` を組み合わせる現行方針を補強する。
+- CLIP STUDIO TIPS の `Creating a New Manga and Storyboard` は、dialog と表情のような `失いたくない情報` は default border の内側に置くよう勧めている。preview でも `台詞量が多すぎて安全域を圧迫していないか` を先に見せる価値がある。
+- SILENT MANGA AUDITION の `The "Flow of Current" in Manga – Paneling Basics` は、日本語漫画ではページ全体の流れと同じ `右→左` ベクトルに動きや視線を乗せると `速い / 鋭い / 軽い` 印象が強まり、逆向きは `遅い / 重い / 力強い` 印象を作ると整理している。`koma-fill` の panel prompt と layout hint でも `flow に乗せるか、逆らわせるか` を明示できると実務に近い。
+- SILENT MANGA AUDITION の Japanese Manga 101 系列は、NAME を `ラフの見た目` ではなく `演出・順序・間・台詞の交通整理` として扱っている。`koma-fill` でも name は画像生成前の optional step ではなく、実制作の中心工程として設計する方が正しい。
 
 ## 1. コマ割りの基本原則
 
@@ -15,6 +24,7 @@
 - 漫画はコマ単体ではなく、ページ全体の読み順と視線誘導で読みやすさが決まる。
 - 日本式右→左なら、ページ全体の視線は逆Zに近い流れを崩さない方が読みやすい。
 - `koma-fill` では、テンプレごとに「読む順」「視線の落とし先」「最終コマの重み」を定義する。
+- 動きのベクトルもページ flow と揃えると `速さ / 軽さ` を作りやすい。逆向きは `抵抗 / 重さ / 力感` を作るので、見せゴマだけ逆流させる設計が有効。
 
 ### 1-3. ネームは先に役割を決める
 - 画像をいきなり出すより、先に各コマの役割を決める方が品質が安定する。
@@ -24,6 +34,7 @@
   - 感情
   - カット距離
   - 構図メモ
+- NAME は pre-production の核で、後工程の線画や仕上げより先に `読者がどう読むか` を確定する工程。`koma-fill` の UX も「画像生成前に name を締める」を主導線にした方がぶれにくい。
 
 ## 2. 吹き出しの基本原則
 
@@ -41,11 +52,13 @@
 - 長文は文節単位で改行、必要なら吹き出し自体を分ける。
 - 大きい1つの吹き出しに長文を押し込むと、余白も密度も不自然になりやすい。
 - `koma-fill` の自動レイアウトでも、文字数ベースで `1吹き出し / 2吹き出し` を切り替えるべき。
+- 作者意図を壊さないため、`明示改行 > 自動分割` の順で扱うべき。
 
 ### 2-4. コマの主役を隠さない
 - 吹き出しはまず空間の余白、次に背景、最後に人物へ重ねる。
 - 顔・手・視線先・重要小道具の上に吹き出しを置くと演出が死にやすい。
 - まず「禁止領域」を決め、その外で配置候補を探す方が実装しやすい。
+- `default border` の内側に dialog と表情を収める意識も必要。preview では `端ギリギリ` と `台詞過密` を早めに警告したい。
 
 ### 2-5. 吹き出しの形は感情の補助記号
 - 通常会話: 丸み吹き出し
@@ -80,6 +93,12 @@
 - モノローグ:
   - しっぽなし
   - コマ上部の横長ボックス
+- 縦長コマ:
+  - 横幅を少し絞る
+  - 下配置でもコマ外にはみ出さないよう bubble height を先に見積もって clamp する
+- `改行` がある場合:
+  - 各行を別 balloon 候補として扱う
+  - 1つの大きな balloon に再結合しない
 
 ### 3-3. 画像生成プロンプトとの分離
 - セリフ本文を画像自体に焼き込ませるより、まずは `感情 / 口形 / 間` の指示として使う。
@@ -104,6 +123,7 @@
    - 構図メモ
 5. ラフプレビュー
    - 文字＋簡易サムネイル
+   - 吹き出し候補数と過密コマ数の確認
    - 必要ならラフ画像生成
 6. 本生成
 7. コマ単位の差し替え
@@ -113,6 +133,8 @@
 ### 優先度 高
 - 手動ネームを主導線にする
 - 吹き出しを panel `speechBubbleText` から自動反映する
+- `1行=1吹き出し候補` を UI で明示する
+- 生成前 / 完成 preview に各コマの吹き出し数と過密警告を載せる
 - 吹き出し位置を右上固定ではなく、読み順と顔位置に応じて選ぶ
 - コマごとに `感情 / カット / 構図メモ` を持てるようにする
 
@@ -128,6 +150,10 @@
 - 効果線や描き文字の自動提案
 
 ## Sources
+- [CLIP STUDIO: Effective Storytelling, Design Tips](https://www.clipstudio.net/en/comics-manga/design-tips/)
+- [CLIP STUDIO TIPS: Creating a New Manga and Storyboard](https://tips.clip-studio.com/en-us/articles/501)
+- [MediBang: Manga Tutorial for Beginners 08 Let’s draw frames and speech bubbles.](https://medibangpaint.com/en/use/2021/11/mangatutorialforbeginners08/)
+- [SILENT MANGA AUDITION: The "Flow of Current" in Manga – Paneling Basics](https://www.manga-audition.com/japanesemanga101_009/)
 - [egaco: 漫画の吹き出しのコツ](https://comic.smiles55.jp/guide/10094/)
 - [CLIP STUDIO: 大今良時流、読者の心を掴む演出テクニック](https://www.clipstudio.net/oekaki/archives/152311)
 - [pixivision: マンガの描き方特集 ネーム・コマ割り編](https://www.pixivision.net/ja/a/6718)

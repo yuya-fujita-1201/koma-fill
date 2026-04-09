@@ -9,6 +9,13 @@ import { MangaLayoutViewer } from '../components/MangaLayoutViewer';
 import { useExport } from '../hooks/useExport';
 import { useMangaStore } from '../store/mangaStore';
 import { MangaProject, getLayoutTemplate } from '../types';
+import {
+  RECOMMENDED_BUBBLE_LENGTH,
+  getDraftCoverageSummary,
+  getPanelDraftSummary,
+  getPanelFitSummary,
+  splitSpeechBubbleText,
+} from '../utils/nameDraft';
 
 function toDisplayImage(imageUrl?: string, imageFilePath?: string): string | undefined {
   if (imageUrl) {
@@ -188,6 +195,7 @@ export default function PreviewPage() {
   const orderedPanels = [...project.panels].sort((a, b) => a.panelIndex - b.panelIndex);
   const generatedCount = orderedPanels.filter((panel) => panel.status === 'generated').length;
   const failedCount = orderedPanels.filter((panel) => panel.status === 'failed').length;
+  const draftCoverage = getDraftCoverageSummary(orderedPanels, template.preview);
 
   return (
     <div className="space-y-8">
@@ -255,7 +263,40 @@ export default function PreviewPage() {
                 <dt className="text-gray-500">失敗コマ</dt>
                 <dd className="mt-1 font-semibold text-gray-900">{failedCount}</dd>
               </div>
+              <div className="rounded-xl bg-gray-50 p-3">
+                <dt className="text-gray-500">ネーム入力</dt>
+                <dd className="mt-1 font-semibold text-gray-900">{draftCoverage.readyPanels} / {draftCoverage.totalPanels}</dd>
+              </div>
+              <div className="rounded-xl bg-gray-50 p-3">
+                <dt className="text-gray-500">吹き出し数</dt>
+                <dd className="mt-1 font-semibold text-gray-900">{draftCoverage.totalBubbles}</dd>
+              </div>
+              <div className="rounded-xl bg-gray-50 p-3">
+                <dt className="text-gray-500">長文警告</dt>
+                <dd className="mt-1 font-semibold text-gray-900">{draftCoverage.longBubblePanels}</dd>
+              </div>
+              <div className="rounded-xl bg-gray-50 p-3">
+                <dt className="text-gray-500">過密コマ</dt>
+                <dd className="mt-1 font-semibold text-gray-900">{draftCoverage.densePanels}</dd>
+              </div>
+              <div className="rounded-xl bg-gray-50 p-3">
+                <dt className="text-gray-500">収まり警告</dt>
+                <dd className="mt-1 font-semibold text-gray-900">{draftCoverage.tightFitPanels}</dd>
+              </div>
             </dl>
+            {(draftCoverage.longBubblePanels > 0 || draftCoverage.densePanels > 0 || draftCoverage.tightFitPanels > 0) && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-xs text-amber-800">
+                {draftCoverage.longBubblePanels > 0
+                  ? `長い吹き出しが ${draftCoverage.longBubblePanels} コマあります。目安は 1 吹き出し ${RECOMMENDED_BUBBLE_LENGTH} 文字以内です。`
+                  : '長い吹き出しはありません。'}{' '}
+                {draftCoverage.densePanels > 0
+                  ? `吹き出しが多いコマは ${draftCoverage.densePanels} コマです。完成ページ更新前にネームを再確認してください。`
+                  : ''}
+                {draftCoverage.tightFitPanels > 0
+                  ? ` 収まりが厳しいコマは ${draftCoverage.tightFitPanels} コマあります。短いコマから先にセリフ量を見直すと安全です。`
+                  : ''}
+              </div>
+            )}
             <div className="grid gap-3">
               <button
                 type="button"
@@ -298,6 +339,9 @@ export default function PreviewPage() {
             <div className="space-y-3">
               {orderedPanels.map((panel) => {
                 const imageSrc = toDisplayImage(panel.imageUrl, panel.imageFilePath);
+                const panelDraft = getPanelDraftSummary(panel);
+                const fitSummary = getPanelFitSummary(panel, template.preview[panel.panelIndex]);
+                const bubblePreview = splitSpeechBubbleText(panel.speechBubbleText).slice(0, 2);
                 return (
                   <div key={panel.id} className="rounded-xl border border-gray-200 p-3">
                     <div className="flex gap-3">
@@ -315,9 +359,37 @@ export default function PreviewPage() {
                           <p className="text-sm font-semibold text-gray-900">#{panel.panelIndex + 1}</p>
                           <span className="text-xs text-gray-500">{panel.status}</span>
                         </div>
+                        <div className="flex flex-wrap gap-2 text-[11px]">
+                          <span className="rounded-full bg-gray-100 px-2 py-1 text-gray-600">
+                            {panelDraft.bubbleCount}吹き出し
+                          </span>
+                          {fitSummary.risk !== 'safe' && (
+                            <span
+                              className={`rounded-full px-2 py-1 ${
+                                fitSummary.risk === 'tight'
+                                  ? 'bg-amber-100 text-amber-800'
+                                  : 'bg-sky-100 text-sky-800'
+                              }`}
+                            >
+                              {fitSummary.risk === 'tight' ? '収まり要調整' : '収まり注意'}
+                            </span>
+                          )}
+                        </div>
                         <p className="line-clamp-3 text-xs text-gray-600">
                           {panel.storyBeat || 'story beat not set'}
                         </p>
+                        {bubblePreview.length > 0 && (
+                          <div className="space-y-1 rounded-lg bg-gray-50 p-2">
+                            {bubblePreview.map((bubble, index) => (
+                              <p key={`${panel.id}-bubble-${index}`} className="line-clamp-1 text-[11px] text-gray-500">
+                                {index + 1}. {bubble}
+                              </p>
+                            ))}
+                            {panelDraft.bubbleCount > bubblePreview.length && (
+                              <p className="text-[11px] text-gray-400">+{panelDraft.bubbleCount - bubblePreview.length} more</p>
+                            )}
+                          </div>
+                        )}
                         <div className="flex gap-2">
                           <button
                             type="button"

@@ -10,31 +10,58 @@ import { CONFIG } from '../config/constants';
 
 const layoutEngine = new LayoutEngine();
 const exportService = new ExportService();
+const AUTO_SPLIT_MIN_LENGTH = 28;
+const AUTO_SPLIT_PUNCTUATION = /[、。！？?!…]/u;
 
 export function buildAutomaticSpeechBubbles(panels: Panel[]): SpeechBubble[] {
   return [...panels]
     .sort((a, b) => a.panelIndex - b.panelIndex)
     .flatMap((panel) => {
-      const text = panel.speechBubbleText?.trim();
-      if (!text) {
+      const segments = splitSpeechBubbleText(panel.speechBubbleText).map((text) => ({
+        text,
+        style: inferBubbleStyle(text),
+      }));
+      if (segments.length === 0) {
         return [];
       }
 
-      return [{
-        panelIndex: panel.panelIndex,
-        text,
-        position: inferBubblePosition(text),
-        style: inferBubbleStyle(text),
-      }];
+      const hasNarrationLead = isNarrationText(segments[0].text);
+      let dialogueSlotIndex = 0;
+
+      return segments.map((segment) => {
+        const bubble: SpeechBubble = {
+          panelIndex: panel.panelIndex,
+          text: segment.text,
+          position: inferBubblePosition(segment.text, dialogueSlotIndex, hasNarrationLead),
+          style: segment.style,
+        };
+
+        if (!isNarrationText(segment.text)) {
+          dialogueSlotIndex += 1;
+        }
+
+        return bubble;
+      });
     });
 }
 
-function inferBubbleStyle(text: string): SpeechBubble['style'] {
-  if (/^(?:モノローグ|ナレーション|地の文)\s*[:：]/.test(text)) {
+export function splitSpeechBubbleText(text?: string): string[] {
+  if (!text) {
+    return [];
+  }
+
+  return text
+    .split(/\r?\n+|\s*\|\|\s*/g)
+    .flatMap((segment) => autoSplitBubbleSegment(segment.trim()))
+    .filter(Boolean);
+}
+
+export function inferBubbleStyle(text: string): SpeechBubble['style'] {
+  if (isNarrationText(text)) {
     return 'rectangular';
   }
 
-  if (/^[（(].+[）)]$/.test(text.trim())) {
+  if (isThoughtText(text)) {
     return 'cloud';
   }
 
@@ -49,16 +76,86 @@ function inferBubbleStyle(text: string): SpeechBubble['style'] {
   return 'rounded';
 }
 
-function inferBubblePosition(text: string): SpeechBubble['position'] {
-  if (/^(?:モノローグ|ナレーション|地の文)\s*[:：]/.test(text)) {
+export function inferBubblePosition(
+  text: string,
+  dialogueSlotIndex = 0,
+  hasNarrationLead = false
+): SpeechBubble['position'] {
+  if (isNarrationText(text)) {
     return 'top';
   }
 
-  if (text.length >= 28) {
+  if (isThoughtText(text)) {
+    if (hasNarrationLead) {
+      return dialogueSlotIndex === 0 ? 'middle' : 'bottom';
+    }
     return 'middle';
   }
 
-  return 'top';
+  const dialogueTrack = hasNarrationLead
+    ? (['middle', 'bottom'] as const)
+    : (['top', 'middle', 'bottom'] as const);
+  const trackPosition = dialogueTrack[Math.min(dialogueSlotIndex, dialogueTrack.length - 1)];
+
+  if (text.length >= 28 && trackPosition === 'top') {
+    return 'middle';
+  }
+
+  return trackPosition;
+}
+
+function isNarrationText(text: string): boolean {
+  return /^(?:モノローグ|ナレーション|地の文)\s*[:：]/.test(text);
+}
+
+function isThoughtText(text: string): boolean {
+  return /^[（(].+[）)]$/.test(text.trim());
+}
+
+function autoSplitBubbleSegment(segment: string): string[] {
+  if (!segment) {
+    return [];
+  }
+
+  if (segment.length < AUTO_SPLIT_MIN_LENGTH || isNarrationText(segment) || isThoughtText(segment)) {
+    return [segment];
+  }
+
+  const splitIndex = findAutoSplitIndex(segment);
+  if (splitIndex < 0) {
+    return [segment];
+  }
+
+  const first = segment.slice(0, splitIndex + 1).trim();
+  const second = segment.slice(splitIndex + 1).trim();
+
+  if (first.length < 4 || second.length < 4) {
+    return [segment];
+  }
+
+  return [first, second];
+}
+
+function findAutoSplitIndex(segment: string): number {
+  const lowerBound = Math.floor(segment.length * 0.25);
+  const upperBound = Math.ceil(segment.length * 0.8);
+  const midpoint = segment.length / 2;
+  let bestIndex = -1;
+  let bestDistance = Number.POSITIVE_INFINITY;
+
+  for (let index = lowerBound; index < upperBound; index += 1) {
+    if (!AUTO_SPLIT_PUNCTUATION.test(segment[index])) {
+      continue;
+    }
+
+    const distance = Math.abs(index - midpoint);
+    if (distance < bestDistance) {
+      bestIndex = index;
+      bestDistance = distance;
+    }
+  }
+
+  return bestIndex;
 }
 
 function toSafeFileSegment(value: string): string {

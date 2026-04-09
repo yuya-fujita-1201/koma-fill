@@ -143,6 +143,7 @@ describe('PromptGenerationService', () => {
     const systemPrompt = callPayload.messages?.[0]?.content ?? '';
     expect(systemPrompt).toContain('Hero');
     expect(systemPrompt).toContain('フルブリード');
+    expect(systemPrompt).toContain('1行 = 1吹き出し');
   });
 
   it('imageStyle が出力プロンプトに反映される', async () => {

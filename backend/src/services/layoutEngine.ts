@@ -196,6 +196,7 @@ export class LayoutEngine {
     const panelPositionMap = new Map(layout.panelPositions.map(p => [p.panelIndex, p]));
 
     const panelBubbleCounts = new Map<number, number>();
+    const panelDialogueBubbleCounts = new Map<number, number>();
 
     const bubbleSvgs = bubbles.map((bubble) => {
       const panelPos = panelPositionMap.get(bubble.panelIndex);
@@ -203,8 +204,14 @@ export class LayoutEngine {
         throw new Error(`Panel ${bubble.panelIndex} not found in layout`);
       }
 
-      const slotIndex = panelBubbleCounts.get(bubble.panelIndex) ?? 0;
-      panelBubbleCounts.set(bubble.panelIndex, slotIndex + 1);
+      const panelBubbleCount = panelBubbleCounts.get(bubble.panelIndex) ?? 0;
+      panelBubbleCounts.set(bubble.panelIndex, panelBubbleCount + 1);
+
+      const dialogueSlotIndex = panelDialogueBubbleCounts.get(bubble.panelIndex) ?? 0;
+      const slotIndex = bubble.style === 'rectangular' ? panelBubbleCount : dialogueSlotIndex;
+      if (bubble.style !== 'rectangular') {
+        panelDialogueBubbleCounts.set(bubble.panelIndex, dialogueSlotIndex + 1);
+      }
 
       const bubbleSvg = this.generateSpeechBubbleSvg(
         bubble,
@@ -366,40 +373,18 @@ ${rects}
     layoutWidth: number,
     layoutHeight: number
   ): Buffer {
-    const placement = this.resolveBubblePlacement(bubble, panelPos, slotIndex, readingOrder);
-    const maxCharsPerLine = bubble.style === 'rectangular' ? 22 : 14;
-    const bubbleWidth = placement.width;
-    const bubbleX = placement.x;
-
-    // テキストを複数行に分割（日本語対応: 文字数ベース折り返し）
-    const lines: string[] = [];
-    const hasSpaces = bubble.text.includes(' ');
-
-    if (hasSpaces) {
-      // 英語テキスト: スペース区切り
-      const words = bubble.text.split(' ');
-      let currentLine = '';
-      for (const word of words) {
-        if ((currentLine + word).length > maxCharsPerLine) {
-          if (currentLine) lines.push(currentLine.trim());
-          currentLine = word + ' ';
-        } else {
-          currentLine += word + ' ';
-        }
-      }
-      if (currentLine) lines.push(currentLine.trim());
-    } else {
-      // 日本語テキスト: 文字数で折り返し
-      const text = bubble.text;
-      for (let i = 0; i < text.length; i += maxCharsPerLine) {
-        lines.push(text.slice(i, i + maxCharsPerLine));
-      }
-    }
-
-    // 行数に応じて吹き出し高さを動的に計算
-    const lineHeight = 20;
+    const frame = this.resolveBubbleFrame(bubble, panelPos, slotIndex, readingOrder);
+    const maxCharsPerLine = Math.max(
+      bubble.style === 'rectangular' ? 10 : 7,
+      Math.floor((frame.width - 28) / (bubble.style === 'rectangular' ? 12 : 10))
+    );
+    const lines = this.wrapBubbleText(bubble.text, maxCharsPerLine);
+    const lineHeight = bubble.style === 'rectangular' ? 18 : 20;
     const verticalPadding = 20;
     const bubbleHeight = Math.max(50, lines.length * lineHeight + verticalPadding);
+    const placement = this.resolveBubblePlacement(frame, panelPos, bubbleHeight);
+    const bubbleWidth = placement.width;
+    const bubbleX = placement.x;
     const targetY = placement.y;
 
     let shapePath: string;
@@ -456,35 +441,71 @@ ${textElements}
       .replace(/'/g, '&apos;');
   }
 
-  private resolveBubblePlacement(
+  private wrapBubbleText(text: string, maxCharsPerLine: number): string[] {
+    const segments = text
+      .split(/\r?\n/g)
+      .map((segment) => segment.trim())
+      .filter(Boolean);
+    const lines: string[] = [];
+    const normalizedSegments = segments.length > 0 ? segments : [text];
+
+    for (const segment of normalizedSegments) {
+      const hasSpaces = segment.includes(' ');
+
+      if (hasSpaces) {
+        const words = segment.split(' ');
+        let currentLine = '';
+        for (const word of words) {
+          if ((currentLine + word).length > maxCharsPerLine) {
+            if (currentLine) {
+              lines.push(currentLine.trim());
+            }
+            currentLine = `${word} `;
+          } else {
+            currentLine += `${word} `;
+          }
+        }
+        if (currentLine) {
+          lines.push(currentLine.trim());
+        }
+        continue;
+      }
+
+      for (let i = 0; i < segment.length; i += maxCharsPerLine) {
+        lines.push(segment.slice(i, i + maxCharsPerLine));
+      }
+    }
+
+    return lines;
+  }
+
+  private resolveBubbleFrame(
     bubble: SpeechBubble,
     panelPos: PanelPosition,
     slotIndex: number,
     readingOrder: ReadingOrder
-  ): { x: number; y: number; width: number; anchor: 'left' | 'right' | 'center' } {
+  ): { x: number; width: number; anchor: 'left' | 'right' | 'center'; verticalPreference: 'top' | 'middle' | 'bottom' } {
     const innerPadding = 16;
+    const availableWidth = Math.max(80, panelPos.width - innerPadding * 2);
     const nonRectWidth = Math.max(
-      120,
-      Math.min(panelPos.width - innerPadding * 2, Math.round(panelPos.width * 0.56))
+      Math.min(120, availableWidth),
+      Math.min(availableWidth, Math.round(panelPos.width * 0.56))
     );
     const rectWidth = Math.max(
-      160,
-      Math.min(panelPos.width - innerPadding * 2, 360)
+      Math.min(160, availableWidth),
+      Math.min(availableWidth, 360)
     );
     const bubbleWidth = bubble.style === 'rectangular' ? rectWidth : nonRectWidth;
     const leftX = panelPos.x + innerPadding;
     const centerX = panelPos.x + Math.max(innerPadding, (panelPos.width - bubbleWidth) / 2);
     const rightX = panelPos.x + panelPos.width - bubbleWidth - innerPadding;
-    const topY = panelPos.y + innerPadding;
-    const middleY = panelPos.y + Math.max(innerPadding, Math.round(panelPos.height * 0.34));
-    const bottomY = panelPos.y + Math.max(innerPadding, panelPos.height - 110);
 
     if (bubble.style === 'rectangular') {
       return {
         x: leftX,
-        y: topY,
         width: rectWidth,
         anchor: 'center',
+        verticalPreference: 'top',
       };
     }
 
@@ -510,9 +531,31 @@ ${textElements}
 
     return {
       x: horizontalChoice === 'left' ? leftX : horizontalChoice === 'right' ? rightX : centerX,
-      y: verticalChoice === 'top' ? topY : verticalChoice === 'middle' ? middleY : bottomY,
       width: bubbleWidth,
       anchor: horizontalChoice,
+      verticalPreference: verticalChoice,
+    };
+  }
+
+  private resolveBubblePlacement(
+    frame: { x: number; width: number; anchor: 'left' | 'right' | 'center'; verticalPreference: 'top' | 'middle' | 'bottom' },
+    panelPos: PanelPosition,
+    bubbleHeight: number
+  ): { x: number; y: number; width: number; anchor: 'left' | 'right' | 'center' } {
+    const innerPadding = 16;
+    const topY = panelPos.y + innerPadding;
+    const maxY = panelPos.y + Math.max(innerPadding, panelPos.height - bubbleHeight - innerPadding);
+    const middleY = Math.min(
+      maxY,
+      panelPos.y + Math.max(innerPadding, Math.round(panelPos.height * 0.34))
+    );
+    const bottomY = maxY;
+
+    return {
+      x: frame.x,
+      y: frame.verticalPreference === 'top' ? Math.min(topY, maxY) : frame.verticalPreference === 'middle' ? middleY : bottomY,
+      width: frame.width,
+      anchor: frame.anchor,
     };
   }
 

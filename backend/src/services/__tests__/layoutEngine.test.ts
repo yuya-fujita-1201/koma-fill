@@ -148,6 +148,65 @@ describe('LayoutEngine', () => {
     expect(bubbleComposites[0].input.toString()).toContain('<rect x="16" y="16" width="360"');
   });
 
+  it('先頭ナレーションがあっても最初の会話は右側から始める', async () => {
+    const layout = await engine.composePanels(
+      ['a.png'],
+      defaultConfig({ totalPanels: 1, pageWidth: 400, pageHeight: 400, gutterSize: 0, borderWidth: 0 })
+    );
+    mockSharpInstance.composite.mockClear();
+
+    await engine.addSpeechBubbles(layout, [
+      { panelIndex: 0, text: 'ナレーション: 放課後の屋上', position: 'top', style: 'rectangular' },
+      { panelIndex: 0, text: '急ごう', position: 'middle', style: 'rounded' },
+      { panelIndex: 0, text: 'まだ間に合う', position: 'bottom', style: 'rounded' },
+    ]);
+
+    const bubbleComposites = mockSharpInstance.composite.mock.calls[0][0] as Array<{ input: Buffer }>;
+    expect(bubbleComposites[0].input.toString()).toContain('<rect x="16" y="16" width="360"');
+    expect(bubbleComposites[1].input.toString()).toContain('<rect x="160" y="136" width="224"');
+    expect(bubbleComposites[2].input.toString()).toContain('<rect x="16" y="334" width="224"');
+  });
+
+  it('bottom 吹き出しを短いコマ内に収める', async () => {
+    const layout = await engine.composePanels(
+      ['a.png'],
+      defaultConfig({ totalPanels: 1, pageWidth: 240, pageHeight: 120, gutterSize: 0, borderWidth: 0 })
+    );
+    mockSharpInstance.composite.mockClear();
+
+    await engine.addSpeechBubbles(layout, [
+      {
+        panelIndex: 0,
+        text: '下側に置きたい説明文なので複数行になるように十分長くしておく',
+        position: 'bottom',
+        style: 'rounded',
+      },
+    ]);
+
+    const bubbleComposites = mockSharpInstance.composite.mock.calls[0][0] as Array<{ input: Buffer }>;
+    expect(bubbleComposites[0].input.toString()).toContain('<rect x="90" y="24" width="134" height="80"');
+  });
+
+  it('狭いコマでは吹き出し幅をパネル内に縮める', async () => {
+    const layout = await engine.composePanels(
+      ['a.png'],
+      defaultConfig({ totalPanels: 1, pageWidth: 140, pageHeight: 240, gutterSize: 0, borderWidth: 0 })
+    );
+    mockSharpInstance.composite.mockClear();
+
+    await engine.addSpeechBubbles(layout, [
+      {
+        panelIndex: 0,
+        text: 'ナレーション: 狭いコマでも内側に収めたい',
+        position: 'top',
+        style: 'rectangular',
+      },
+    ]);
+
+    const bubbleComposites = mockSharpInstance.composite.mock.calls[0][0] as Array<{ input: Buffer }>;
+    expect(bubbleComposites[0].input.toString()).toContain('<rect x="16" y="16" width="108"');
+  });
+
   it('空のパネル配列で ValidationError を投げる', async () => {
     await expect(
       engine.composePanels([], defaultConfig({ totalPanels: 0 }))
